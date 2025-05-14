@@ -29,11 +29,13 @@ import {
   type PaginationState,
 } from "@tanstack/react-table"
 import React, { useCallback, useMemo, useState } from "react"
-import type { Order, Todos } from "./types"
 import TablePagination from "../table-pagination"
+import type { Order, Todos } from "./types"
+import DetailTodo from "../detail-todo"
 
 export default function UserTable() {
   const [selected, setSelected] = useState<number[]>([])
+  const [openDetail, setOpenDetail] = useState(false)
   const [order, setOrder] = useState<Order>("asc")
   const [orderBy, setOrderBy] = useState<keyof Todos>()
   const [pagination, setPagination] = useState<PaginationState>({
@@ -300,7 +302,14 @@ export default function UserTable() {
           </TableHead>
           <TableBody>
             {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+              <TableRow
+                key={row.id}
+                onClick={() => setOpenDetail(true)}
+                sx={{
+                  cursor: "pointer",
+                  ":hover": { backgroundColor: "#f5f5f5" },
+                }}
+              >
                 <TableCell padding="checkbox">
                   <Checkbox
                     checked={selected.includes(row.original.id)}
@@ -332,6 +341,11 @@ export default function UserTable() {
         }}
         hasNext={!table.getCanNextPage()}
         hasPrev={!table.getCanPreviousPage()}
+      />
+      <DetailTodo
+        open={openDetail}
+        onClose={() => setOpenDetail(false)}
+        onAdd={() => {}}
       />
     </Box>
   )

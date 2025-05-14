@@ -5,7 +5,6 @@ import {
   Inbox,
   Label,
   Menu,
-  Search,
   Today,
 } from "@mui/icons-material"
 import {
@@ -22,6 +21,8 @@ import {
   useMediaQuery,
   useTheme,
 } from "@mui/material"
+import { useState } from "react"
+import FormDialog from "../form-dialog"
 
 const drawerWidth = 250
 const miniWidth = 56
@@ -35,8 +36,7 @@ interface SidebarProps {
 export default function Sidebar({ variant, open, onClose }: SidebarProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
-
-  console.log("open asu", open)
+  const [opeModal, setOpeModal] = useState(false)
 
   return (
     <Drawer
@@ -87,15 +87,14 @@ export default function Sidebar({ variant, open, onClose }: SidebarProps) {
 
       <List>
         {[
-          { icon: <Add />, label: "Add task" },
-          { icon: <Search />, label: "Search" },
-          { icon: <Inbox />, label: "Inbox", badge: "8" },
-          { icon: <Today />, label: "Today", badge: "2" },
-          { icon: <Event />, label: "Upcoming" },
-          { icon: <Label />, label: "Filters & Labels" },
-          { icon: <CheckCircle />, label: "Completed" },
-        ].map(({ icon, label, badge }) => (
-          <ListItemButton key={label}>
+          { icon: <Add />, label: "Add task", action: () => setOpeModal(true) },
+          { icon: <Inbox />, label: "Inbox", badge: "8", action: () => {} },
+          { icon: <Today />, label: "Today", badge: "2", action: () => {} },
+          { icon: <Event />, label: "Upcoming", action: () => {} },
+          { icon: <Label />, label: "Filters & Labels", action: () => {} },
+          { icon: <CheckCircle />, label: "Completed", action: () => {} },
+        ].map(({ icon, label, badge, action }) => (
+          <ListItemButton key={label} onClick={action}>
             <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
               {icon}
             </ListItemIcon>
@@ -108,6 +107,11 @@ export default function Sidebar({ variant, open, onClose }: SidebarProps) {
           </ListItemButton>
         ))}
       </List>
+      <FormDialog
+        open={opeModal}
+        onAdd={() => setOpeModal(false)}
+        onClose={() => setOpeModal(false)}
+      />
     </Drawer>
   )
 }
