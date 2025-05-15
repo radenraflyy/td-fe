@@ -60,7 +60,8 @@ export default function UserTable() {
     () => [
       columnHelper.accessor("id", {
         header: "Number",
-        cell: (info) => info.row.index + 1,
+        cell: (info) =>
+          pagination.pageIndex * pagination.pageSize + info.row.index + 1,
       }),
       columnHelper.accessor("title", {
         header: "Title",
@@ -89,7 +90,7 @@ export default function UserTable() {
         cell: (info) => formatDateTime(info.getValue()),
       }),
     ],
-    [columnHelper]
+    [columnHelper, pagination.pageIndex, pagination.pageSize]
   )
 
   const table = useReactTable({

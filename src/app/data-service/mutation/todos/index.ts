@@ -9,12 +9,12 @@ export const todoMutations: MutationDataService<TodoMutationKeys> = {
   "create-todos": {
     url: "/todo",
     method: "POST",
-    refetchQueries: [],
+    refetchQueries: ["list-todos"],
   },
   "create-label": {
     url: "/todo/label",
     method: "POST",
-    refetchQueries: ['list-labels'],
+    refetchQueries: ["list-labels"],
   },
   "create-comment": {
     url: "/todo/comment/:todo_id",

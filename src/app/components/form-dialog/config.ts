@@ -4,7 +4,7 @@ export const TodoSchema = yup.object().shape({
   title: yup.string().required("Title is required"),
   description: yup.string().required("Description is required"),
   due_date: yup.date().required("Due date is required"),
-  priority: yup.string().optional(),
+  priority: yup.string().required("Priority is required"),
   label: yup.array().of(yup.string()).optional(),
 })
 
