@@ -189,6 +189,7 @@ export default function UserTable() {
                 <TableCell padding="checkbox">
                   <Checkbox
                     checked={selected.includes(row.original.id)}
+                    onClick={(e) => e.stopPropagation()}
                     onChange={() => {
                       const id = row.original.id
                       setSelected((s) =>
