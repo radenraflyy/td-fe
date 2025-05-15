@@ -1,15 +1,9 @@
-import {
-  Add,
-  CheckCircle,
-  Event,
-  Inbox,
-  Label,
-  Menu,
-  Today,
-} from "@mui/icons-material"
+import { Add, DoorBack, Inbox, Logout, Menu } from "@mui/icons-material"
 import {
   Avatar,
   Box,
+  Button,
+  colors,
   Drawer,
   IconButton,
   List,
@@ -23,6 +17,8 @@ import {
 } from "@mui/material"
 import { useState } from "react"
 import FormDialog from "../form-dialog"
+import { useLocation } from "react-router-dom"
+import { useAuth } from "@/app/hooks/use-auth"
 
 const drawerWidth = 250
 const miniWidth = 56
@@ -37,6 +33,8 @@ export default function Sidebar({ variant, open, onClose }: SidebarProps) {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down("md"))
   const [opeModal, setOpeModal] = useState(false)
+  const location = useLocation()
+  const { signOut } = useAuth()
 
   return (
     <Drawer
@@ -66,52 +64,77 @@ export default function Sidebar({ variant, open, onClose }: SidebarProps) {
         },
       }}
     >
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: open ? "space-between" : "center",
-          p: 1,
-        }}
+      <Stack
+        direction={"column"}
+        height={"100%"}
+        justifyContent={"space-between"}
+        py={2}
       >
-        {open && (
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <Avatar />
-            <Typography variant="h6">Raden</Typography>
-          </Stack>
-        )}
-        <IconButton onClick={onClose} size="small">
-          <Menu />
-        </IconButton>
-      </Box>
-
-      <List>
-        {[
-          { icon: <Add />, label: "Add task", action: () => setOpeModal(true) },
-          { icon: <Inbox />, label: "Inbox", badge: "8", action: () => {} },
-          { icon: <Today />, label: "Today", badge: "2", action: () => {} },
-          { icon: <Event />, label: "Upcoming", action: () => {} },
-          { icon: <Label />, label: "Filters & Labels", action: () => {} },
-          { icon: <CheckCircle />, label: "Completed", action: () => {} },
-        ].map(({ icon, label, badge, action }) => (
-          <ListItemButton key={label} onClick={action}>
-            <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
-              {icon}
-            </ListItemIcon>
-            {open && <ListItemText primary={label} sx={{ ml: 2 }} />}
-            {open && badge && (
-              <Typography variant="body2" color="secondary" sx={{ ml: "auto" }}>
-                {badge}
-              </Typography>
+        <Box>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: open ? "space-between" : "center",
+              p: 1,
+            }}
+          >
+            {open && (
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Avatar />
+                <Typography variant="h6">Raden</Typography>
+              </Stack>
             )}
-          </ListItemButton>
-        ))}
-      </List>
-      <FormDialog
-        open={opeModal}
-        onAdd={() => setOpeModal(false)}
-        onClose={() => setOpeModal(false)}
-      />
+            <IconButton onClick={onClose} size="small">
+              <Menu />
+            </IconButton>
+          </Box>
+          <List>
+            {[
+              {
+                icon: <Add />,
+                label: "Add task",
+                action: () => setOpeModal(true),
+              },
+              { icon: <Inbox />, label: "Inbox", path: "/" },
+            ].map(({ icon, label, action, path }) => (
+              <ListItemButton
+                key={label}
+                onClick={action}
+                sx={{
+                  bgcolor:
+                    location.pathname === path ? colors.grey[300] : "unset",
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 0, justifyContent: "center" }}>
+                  {icon}
+                </ListItemIcon>
+                {open && <ListItemText primary={label} sx={{ ml: 2 }} />}
+              </ListItemButton>
+            ))}
+          </List>
+        </Box>
+        <Stack direction="column" alignItems="center" px={1}>
+          <Button
+            variant="outlined"
+            fullWidth
+            color="secondary"
+            onClick={signOut}
+            startIcon={<Logout color="action" />}
+          >
+            <Typography
+              fontSize={14}
+              fontWeight={600}
+              sx={{
+                color: "GrayText",
+              }}
+            >
+              Logout
+            </Typography>
+          </Button>
+        </Stack>
+      </Stack>
+      <FormDialog open={opeModal} onClose={() => setOpeModal(false)} />
     </Drawer>
   )
 }

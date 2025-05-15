@@ -11,7 +11,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ value, onChange }) => {
   return (
     <OutlinedInput
       fullWidth
-      sx={{ mb: 2 }}
       id="outlined-adornment-amount"
       startAdornment={
         <InputAdornment position="start">

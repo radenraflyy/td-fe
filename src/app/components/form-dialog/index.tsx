@@ -18,6 +18,7 @@ import {
 } from "@mui/material"
 
 import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
+import useQueryApiRequest from "@/app/hooks/useApiRequest/useQueryApiRequest"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { Check, Flag } from "@mui/icons-material"
 import { AxiosError } from "axios"
@@ -26,7 +27,6 @@ import ButtonLoading from "../ButtonLoading"
 import CustomDatePicker from "../custom-date-picker"
 import MultipleSelectChip, { type LabelOption } from "../select-add"
 import { type Todo, TodoSchema } from "./config"
-import useQueryApiRequest from "@/app/hooks/useApiRequest/useQueryApiRequest"
 
 interface DialogProps {
   open: boolean
@@ -37,16 +37,12 @@ export default function FormDialog({ open, onClose }: DialogProps) {
   const {
     control,
     handleSubmit,
-    formState: { isValid, errors },
-    getValues,
+    formState: { isValid },
     reset,
   } = useForm({
     mode: "onChange",
     resolver: yupResolver(TodoSchema),
   })
-
-  console.log("getValues()", getValues())
-  console.log("errors", errors)
 
   const [priorityAnchor, setPriorityAnchor] = useState<HTMLElement | null>(null)
 

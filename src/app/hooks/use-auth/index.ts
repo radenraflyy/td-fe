@@ -58,6 +58,7 @@ export const useAuth = () => {
         withCredentials: true,
       })
       axiosWithAuth.defaults.headers.common["Authorization"] = ""
+      localStorage.removeItem("isLoggedIn")
       navigate("/auth/login", { replace: true })
       queryClient.clear()
       logout()

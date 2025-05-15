@@ -4,6 +4,7 @@ export type TodoMutationKeys =
   | "create-todos"
   | "create-label"
   | "create-comment"
+  | "update-todo"
 
 export const todoMutations: MutationDataService<TodoMutationKeys> = {
   "create-todos": {
@@ -21,4 +22,9 @@ export const todoMutations: MutationDataService<TodoMutationKeys> = {
     method: "POST",
     refetchQueries: [],
   },
+  "update-todo": {
+    url: "/todo",
+    method: "PATCH",
+    refetchQueries: ["list-todos"],
+  }
 }

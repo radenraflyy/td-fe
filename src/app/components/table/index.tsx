@@ -1,9 +1,14 @@
+import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
 import useQueryApiRequest from "@/app/hooks/useApiRequest/useQueryApiRequest"
 import { formatDateTime } from "@/app/utils/formatDate"
+import { FilterList } from "@mui/icons-material"
 import {
   Box,
   Checkbox,
+  colors,
+  IconButton,
   Paper,
+  Stack,
   Table,
   TableBody,
   TableCell,
@@ -11,20 +16,23 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
+  Typography,
 } from "@mui/material"
+import { keepPreviousData } from "@tanstack/react-query"
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
+  type ColumnFiltersState,
   type SortingState,
 } from "@tanstack/react-table"
 import { useCallback, useMemo, useState } from "react"
+import DetailTodo from "../detail-todo"
+import FilterDialog from "../dialog-filter-todo"
 import SearchBar from "../searchbar"
 import TablePagination from "../table-pagination"
 import type { TodoData, TodoItem } from "./types"
-import DetailTodo from "../detail-todo"
-import { keepPreviousData } from "@tanstack/react-query"
 
 export default function UserTable() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
@@ -32,10 +40,13 @@ export default function UserTable() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = useState("")
   const [selected, setSelected] = useState<number[]>([])
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [openFilter, setOpenFilter] = useState(false)
 
   const orderBy = sorting.length > 0 ? sorting[0].id : "created_at"
-  const order = sorting.length > 0 && sorting[0].desc ? "desc" : "asc"
+  const order = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "desc"
 
+  console.log('columnFilters', columnFilters)
   const { data: todos } = useQueryApiRequest<TodoData>({
     key: "list-todos",
     config: {
@@ -45,11 +56,18 @@ export default function UserTable() {
         search: globalFilter,
         order_by: orderBy,
         order: order,
+        status: columnFilters.find((f) => f.id === "is_done")?.value,
+        priority: columnFilters.find((f) => f.id === "priority")?.value,
+        due_date: columnFilters.find((f) => f.id === "due_date")?.value,
       },
     },
     options: {
       placeholderData: keepPreviousData,
     },
+  })
+
+  const { mutateAsync: updateTodo } = useMutationApiRequest({
+    key: "update-todo",
   })
 
   const data = useMemo(() => todos?.items || [], [todos])
@@ -101,6 +119,7 @@ export default function UserTable() {
       pagination,
       sorting,
       globalFilter,
+      columnFilters,
     },
     manualPagination: true,
     manualSorting: true,
@@ -109,31 +128,86 @@ export default function UserTable() {
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
+    onColumnFiltersChange: setColumnFilters,
     autoResetPageIndex: false,
     debugTable: true,
   })
 
-  const rowCount = table.getRowModel().rows.length
   const handleSelectAllClick = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.checked) {
-        setSelected(table.getRowModel().rows.map((r) => r.original.id))
+        const allIds = table.getRowModel().rows.map((r) => r.original.id)
+        setSelected(allIds)
+        await updateTodo({
+          id: allIds,
+          is_done: true,
+        })
       } else {
         setSelected([])
+        await updateTodo({
+          id: table.getRowModel().rows.map((r) => r.original.id),
+          is_done: false,
+        })
       }
     },
-    [table]
+    [table, updateTodo]
   )
+  const allIds = table.getRowModel().rows.map((r) => r.original.id)
+  const doneIds = table
+    .getRowModel()
+    .rows.filter((r) => r.original.is_done)
+    .map((r) => r.original.id)
+  const selectedOrDoneIds = Array.from(new Set([...selected, ...doneIds]))
+  const checked =
+    selectedOrDoneIds.length === allIds.length && allIds.length > 0
 
+  const handleFilterApply = (filters: ColumnFiltersState) => {
+    setColumnFilters(filters)
+    setPagination((old) => ({ ...old, pageIndex: 0 }))
+  }
   return (
     <Box sx={{ width: "100%" }}>
-      <SearchBar
-        value={globalFilter}
-        onChange={(e) => {
-          setGlobalFilter(e.target.value)
-          setPagination((old) => ({ ...old, pageIndex: 0 }))
-        }}
-      />
+      <Stack
+        direction={"row"}
+        alignItems={"center"}
+        justifyContent={"space-between"}
+        sx={{ py: 2 }}
+      >
+        <Stack direction={"column"} alignItems={"start"}>
+          <Typography fontWeight={600} fontSize={24}>
+            Daftar Todo
+          </Typography>
+          <Typography fontSize={14} color={"text.secondary"}>
+            {totalCount} Todo tersedia
+          </Typography>
+        </Stack>
+        <Box display={"flex"} alignItems={"center"} gap={2}>
+          <SearchBar
+            value={globalFilter}
+            onChange={(e) => {
+              setGlobalFilter(e.target.value)
+              setPagination((old) => ({ ...old, pageIndex: 0 }))
+            }}
+          />
+          <IconButton onClick={() => setOpenFilter(true)}>
+            <Box
+              bgcolor={colors.grey[100]}
+              p={1.5}
+              borderRadius={1}
+              display={"flex"}
+              alignItems={"center"}
+              justifyContent={"center"}
+            >
+              <FilterList sx={{ m: 0 }} fontSize="medium" />
+            </Box>
+          </IconButton>
+          <FilterDialog
+            open={openFilter}
+            onClose={() => setOpenFilter(false)}
+            onApply={handleFilterApply}
+          />
+        </Box>
+      </Stack>
 
       <TableContainer component={Paper}>
         <Table>
@@ -143,9 +217,10 @@ export default function UserTable() {
                 <TableCell padding="checkbox">
                   <Checkbox
                     indeterminate={
-                      selected.length > 0 && selected.length < rowCount
+                      selectedOrDoneIds.length > 0 &&
+                      selectedOrDoneIds.length < allIds.length
                     }
-                    checked={rowCount > 0 && selected.length === rowCount}
+                    checked={checked}
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
@@ -185,17 +260,34 @@ export default function UserTable() {
                 sx={{
                   cursor: "pointer",
                   ":hover": { backgroundColor: "#f5f5f5" },
+                  backgroundColor: row.original.is_done ? "#f0f0f0" : "inherit",
+                  textDecoration: row.original.is_done
+                    ? "line-through"
+                    : "none",
                 }}
               >
                 <TableCell padding="checkbox">
                   <Checkbox
-                    checked={selected.includes(row.original.id)}
+                    checked={
+                      row.original.is_done || selected.includes(row.original.id)
+                    }
                     onClick={(e) => e.stopPropagation()}
-                    onChange={() => {
+                    onChange={async () => {
                       const id = row.original.id
-                      setSelected((s) =>
-                        s.includes(id) ? s.filter((x) => x !== id) : [...s, id]
-                      )
+                      const newSelected = selected.includes(id)
+                        ? selected.filter((x) => x !== id)
+                        : [...selected, id]
+
+                      setSelected(newSelected)
+
+                      try {
+                        await updateTodo({
+                          id: [id],
+                          is_done: !selected.includes(id),
+                        })
+                      } catch (error) {
+                        console.error("Update failed", error)
+                      }
                     }}
                   />
                 </TableCell>

@@ -178,7 +178,7 @@ const Register = () => {
           onClick={() => navigate("/auth/login")}
           underline="hover"
         >
-          Daftar di sini
+          Silahkan Login
         </Link>
       </Typography>
     </Paper>
