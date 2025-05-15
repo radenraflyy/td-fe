@@ -122,15 +122,17 @@ export default function Sidebar({ variant, open, onClose }: SidebarProps) {
             onClick={signOut}
             startIcon={<Logout color="action" />}
           >
-            <Typography
-              fontSize={14}
-              fontWeight={600}
-              sx={{
-                color: "GrayText",
-              }}
-            >
-              Logout
-            </Typography>
+            {open && (
+              <Typography
+                fontSize={14}
+                fontWeight={600}
+                sx={{
+                  color: "GrayText",
+                }}
+              >
+                Logout
+              </Typography>
+            )}
           </Button>
         </Stack>
       </Stack>
