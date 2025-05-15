@@ -6,6 +6,7 @@ import { AxiosError } from "axios"
 import { useNavigate } from "react-router-dom"
 
 import { axiosWithoutAuth } from "../../utils/axiosWithoutAuth"
+import { useAuthCtx } from "@/app/context/AuthContext"
 
 type User = {
   userId: string
@@ -27,6 +28,7 @@ type Response = {
 export const useAuth = () => {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const { setLogin, logout } = useAuthCtx()
 
   const signIn = useCallback(
     async (value: { email: string; password: string }) => {
@@ -42,12 +44,12 @@ export const useAuth = () => {
         },
       })
       const { data } = result
-
+      setLogin()
       axiosWithAuth.defaults.headers.common["Authorization"] =
         "Bearer " + data.accessToken
       return result
     },
-    []
+    [setLogin]
   )
 
   const signOut = useCallback(async () => {
@@ -58,13 +60,14 @@ export const useAuth = () => {
       axiosWithAuth.defaults.headers.common["Authorization"] = ""
       navigate("/auth/login", { replace: true })
       queryClient.clear()
+      logout()
       return result.data.message
     } catch (error) {
       if (error instanceof AxiosError) {
         alert(error.response?.data.error || "Something went wrong")
       }
     }
-  }, [navigate, queryClient])
+  }, [navigate, queryClient, logout])
 
   return { signIn, signOut }
 }
