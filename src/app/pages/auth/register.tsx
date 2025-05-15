@@ -11,11 +11,23 @@ import {
   Typography,
 } from "@mui/material"
 import { useState } from "react"
+import { Controller, useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
+import { RegisterSchema, RegisterSchemaDefault } from "./config"
+import { yupResolver } from "@hookform/resolvers/yup"
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
+
+  const {
+    control,
+    formState: { isValid },
+  } = useForm({
+    mode: "onChange",
+    resolver: yupResolver(RegisterSchema),
+    defaultValues: RegisterSchemaDefault,
+  })
 
   return (
     <Paper
@@ -44,40 +56,68 @@ const Register = () => {
 
       <Box component="form" noValidate autoComplete="off">
         <Stack spacing={3}>
-          <TextField
-            label="Fullname"
-            type="text"
-            required
-            placeholder="John Doe"
-            fullWidth
+          <Controller
+            name="name"
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Fullname"
+                type="text"
+                placeholder="John Doe"
+                required
+                fullWidth
+                error={Boolean(error)}
+                helperText={error?.message}
+              />
+            )}
           />
 
-          <TextField
-            label="Email"
-            type="email"
-            required
-            placeholder="nama@gmail.com"
-            fullWidth
+          <Controller
+            name="email"
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Email"
+                type="email"
+                placeholder="nama@gmail.com"
+                required
+                fullWidth
+                error={Boolean(error)}
+                helperText={error?.message}
+              />
+            )}
           />
 
-          <TextField
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            required
-            fullWidth
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                    aria-label="toggle password visibility"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
+          <Controller
+            name="password"
+            control={control}
+            render={({ field, fieldState: { error } }) => (
+              <TextField
+                {...field}
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                required
+                fullWidth
+                error={Boolean(error)}
+                helperText={error?.message}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        aria-label="toggle password visibility"
+                        tabIndex={-1} // agar tombol tidak fokus saat tab
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            )}
           />
 
           <Button
@@ -86,6 +126,7 @@ const Register = () => {
             size="large"
             fullWidth
             type="submit"
+            disabled={!isValid}
           >
             Daftar
           </Button>

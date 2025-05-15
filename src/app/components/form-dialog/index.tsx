@@ -17,14 +17,15 @@ import {
   TextField,
 } from "@mui/material"
 
+import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
+import { yupResolver } from "@hookform/resolvers/yup"
 import { Check, Flag } from "@mui/icons-material"
+import { AxiosError } from "axios"
 import { useState } from "react"
+import ButtonLoading from "../ButtonLoading"
 import CustomDatePicker from "../custom-date-picker"
 import MultipleSelectChip from "../select-add"
-import { type Todo, TodoSchemaDefault } from "./config"
-import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
-import { AxiosError } from "axios"
-import ButtonLoading from "../ButtonLoading"
+import { type Todo, TodoSchema } from "./config"
 
 interface DialogProps {
   open: boolean
@@ -35,10 +36,10 @@ export default function FormDialog({ open, onClose }: DialogProps) {
   const {
     control,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { isValid },
   } = useForm({
     mode: "onSubmit",
-    defaultValues: TodoSchemaDefault,
+    resolver: yupResolver(TodoSchema),
   })
 
   const [priorityAnchor, setPriorityAnchor] = useState<HTMLElement | null>(null)
@@ -95,7 +96,7 @@ export default function FormDialog({ open, onClose }: DialogProps) {
                 sx={{ mb: 2 }}
                 {...field}
                 error={Boolean(fieldState.error)}
-                helperText={errors.description?.message}
+                helperText={fieldState.error?.message}
               />
             )}
           />
@@ -103,7 +104,7 @@ export default function FormDialog({ open, onClose }: DialogProps) {
           <Controller
             name="due_date"
             control={control}
-            render={({ field }) => (
+            render={({ field, fieldState }) => (
               <CustomDatePicker
                 value={field.value ? dayjs(field.value) : null}
                 onChange={(val) =>
@@ -112,8 +113,8 @@ export default function FormDialog({ open, onClose }: DialogProps) {
                 slotProps={{
                   textField: {
                     fullWidth: true,
-                    error: !!errors.due_date,
-                    helperText: errors.due_date?.message,
+                    error: Boolean(fieldState.error),
+                    helperText: fieldState.error?.message,
                   },
                 }}
               />

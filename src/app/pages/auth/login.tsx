@@ -1,3 +1,4 @@
+import { yupResolver } from "@hookform/resolvers/yup"
 import { Visibility, VisibilityOff } from "@mui/icons-material"
 import {
   Box,
@@ -11,11 +12,27 @@ import {
   Typography,
 } from "@mui/material"
 import { useState } from "react"
+import { useForm, Controller } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
+import { LoginSchema, LoginSchemaDefault } from "./config"
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm({
+    mode: "onChange",
+    resolver: yupResolver(LoginSchema),
+    defaultValues: LoginSchemaDefault,
+  })
+
+  const onSubmit = (data) => {
+    console.log("Login data:", data)
+  }
 
   return (
     <Paper
@@ -42,34 +59,58 @@ const Login = () => {
         Harap masuk untuk memulai
       </Typography>
 
-      <Box component="form" noValidate autoComplete="off">
+      <Box
+        component="form"
+        noValidate
+        autoComplete="off"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <Stack spacing={3}>
-          <TextField
-            label="Email"
-            type="email"
-            required
-            placeholder="nama@gmail.com"
-            fullWidth
+          <Controller
+            name="email"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Email"
+                type="email"
+                placeholder="nama@gmail.com"
+                required
+                fullWidth
+                error={!!errors.email}
+                helperText={errors.email ? errors.email.message : ""}
+              />
+            )}
           />
 
-          <TextField
-            label="Password"
-            type={showPassword ? "text" : "password"}
-            required
-            fullWidth
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPassword(!showPassword)}
-                    edge="end"
-                    aria-label="toggle password visibility"
-                  >
-                    {showPassword ? <VisibilityOff /> : <Visibility />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
+          <Controller
+            name="password"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                required
+                fullWidth
+                error={!!errors.password}
+                helperText={errors.password ? errors.password.message : ""}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                        aria-label="toggle password visibility"
+                        tabIndex={-1}
+                      >
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            )}
           />
 
           <Button
@@ -78,6 +119,7 @@ const Login = () => {
             size="large"
             fullWidth
             type="submit"
+            disabled={!isValid}
           >
             Masuk
           </Button>
@@ -99,7 +141,7 @@ const Login = () => {
           onClick={() => navigate("/auth/register")}
           underline="hover"
         >
-          Masuk
+          Daftar di sini
         </Link>
       </Typography>
     </Paper>

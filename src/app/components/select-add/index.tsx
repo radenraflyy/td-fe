@@ -6,11 +6,11 @@ import type { ControllerRenderProps } from "react-hook-form"
 
 interface MultipleSelectChipProps {
   field: ControllerRenderProps<{
-    label?: string | undefined
-    priority?: string | undefined
     title: string
     description: string
     due_date: Date
+    priority: string | undefined
+    label: string | undefined
   }>
   label?: string
   options: string[]
