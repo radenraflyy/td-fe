@@ -20,18 +20,15 @@ import {
 import { Check, Flag } from "@mui/icons-material"
 import { useState } from "react"
 import CustomDatePicker from "../custom-date-picker"
-import { TodoSchemaDefault } from "./config"
 import MultipleSelectChip from "../select-add"
+import { type Todo, TodoSchemaDefault } from "./config"
+import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
+import { AxiosError } from "axios"
+import ButtonLoading from "../ButtonLoading"
 
 interface DialogProps {
   open: boolean
   onClose: () => void
-  onAdd: (task: {
-    title: string
-    description: string
-    due_date: string
-    tags: string[]
-  }) => void
 }
 
 export default function FormDialog({ open, onClose }: DialogProps) {
@@ -40,7 +37,7 @@ export default function FormDialog({ open, onClose }: DialogProps) {
     handleSubmit,
     formState: { errors, isValid },
   } = useForm({
-    mode: "onBlur",
+    mode: "onSubmit",
     defaultValues: TodoSchemaDefault,
   })
 
@@ -48,9 +45,24 @@ export default function FormDialog({ open, onClose }: DialogProps) {
 
   const levels = [1, 2, 3, 4]
 
+  const { mutateAsync, isPending } = useMutationApiRequest<Todo>({
+    key: "create-todos",
+  })
+
+  const onSubmit = handleSubmit((data) => {
+    try {
+      console.log("data", data)
+      mutateAsync(data)
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        alert(error.response?.data.error || "Something went wrong")
+      }
+    }
+  })
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <Box component="form" onSubmit={() => handleSubmit(onClose)}>
+      <Box component="form" onSubmit={onSubmit}>
         <DialogTitle>
           <Controller
             name="title"
@@ -183,9 +195,13 @@ export default function FormDialog({ open, onClose }: DialogProps) {
 
         <DialogActions sx={{ px: 3, py: 2 }}>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={!isValid}>
-            Add Task
-          </Button>
+          <ButtonLoading
+            type="submit"
+            variant="contained"
+            disabled={!isValid}
+            loading={isPending}
+            text={"Add Task"}
+          />
         </DialogActions>
       </Box>
     </Dialog>

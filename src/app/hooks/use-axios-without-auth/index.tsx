@@ -1,33 +1,34 @@
-import { useCallback } from 'react';
+import { useCallback } from "react"
 
-import { AxiosError, AxiosRequestConfig } from 'axios';
-import { usePathname } from 'next/navigation';
+import { AxiosError, type AxiosRequestConfig } from "axios"
 
-import { SuccessResponse } from '@/src/app/types';
-import { axiosWithoutAuth } from '@/src/app/utils/axiosWithoutAuth';
+import type { SuccessResponse } from "@/app/types"
+import { axiosWithoutAuth } from "@/app/utils/axiosWithoutAuth"
+import { useLocation } from "react-router-dom"
 
-import { ResponsePayload } from './types';
+import type { ResponsePayload } from "./types"
 
 //eslint-disable-next-line @typescript-eslint/no-explicit-any
 function useAxiosWithoutAuth<T = any>() {
-  const asPath = usePathname();
+  const { pathname } = useLocation()
   const axiosFetch = useCallback(
     async (config: AxiosRequestConfig) => {
-      if (!axiosWithoutAuth.defaults.baseURL) throw { message: 'base url required' };
-      axiosWithoutAuth.defaults.headers.common['clientPath'] = asPath;
-      if (!config.url) return;
-      if (config.url.match(/undefined/g)) return;
+      if (!axiosWithoutAuth.defaults.baseURL)
+        throw { message: "base url required" }
+      axiosWithoutAuth.defaults.headers.common["clientPath"] = pathname
+      if (!config.url) return
+      if (config.url.match(/undefined/g)) return
 
       return await axiosWithoutAuth<SuccessResponse<T>>(config).catch(
         async (err: AxiosError<ResponsePayload>) => {
-          if (![401].includes(err.response?.status || 0)) throw err;
-        },
-      );
+          if (![401].includes(err.response?.status || 0)) throw err
+        }
+      )
     },
-    [asPath],
-  );
+    [pathname]
+  )
 
-  return axiosFetch;
+  return axiosFetch
 }
 
-export default useAxiosWithoutAuth;
+export default useAxiosWithoutAuth
