@@ -1,14 +1,11 @@
 import { forwardRef } from "react"
 
 import {
-  Button,
-  DialogActions,
   FormHelperText,
-  InputLabel as MuiInputLabel,
+  InputLabel as MuiInputLabel
 } from "@mui/material"
 import { styled } from "@mui/system"
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers"
-import type { PickersActionBarProps } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { Dayjs } from "dayjs"
 
@@ -22,27 +19,6 @@ const InputLabel = styled(MuiInputLabel)(() => ({
     color: "red",
   },
 }))
-
-const ActionBar = (props: PickersActionBarProps) => {
-  const { onAccept, onClear, className } = props
-  return (
-    <DialogActions
-      className={className}
-      sx={{ borderTop: `0.7px solid ${colors.secondary}` }}
-    >
-      <Button onClick={onClear} sx={{ borderRadius: "16px" }}>
-        Reset
-      </Button>
-      <Button
-        onClick={onAccept}
-        variant="contained"
-        sx={{ borderRadius: "16px" }}
-      >
-        Simpan
-      </Button>
-    </DialogActions>
-  )
-}
 
 const CustomDatePicker = forwardRef<
   HTMLDivElement,
@@ -70,6 +46,9 @@ const CustomDatePicker = forwardRef<
           maxDate={maxDate}
           closeOnSelect={closeOnSelect || false}
           slotProps={{
+            actionBar: {
+              actions: ["clear", "accept"],
+            },
             day: {
               sx: {
                 borderRadius: "12px",
@@ -93,7 +72,7 @@ const CustomDatePicker = forwardRef<
             ...slotProps,
           }}
           slots={{
-            actionBar: ActionBar,
+            // actionBar: ActionBar,
             ...slots,
           }}
         />

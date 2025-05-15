@@ -1,8 +1,14 @@
+import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
 import { Chip, TextField } from "@mui/material"
 import Autocomplete from "@mui/material/Autocomplete"
 import { useTheme } from "@mui/material/styles"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import type { ControllerRenderProps } from "react-hook-form"
+
+export interface LabelOption {
+  id: string
+  name: string
+}
 
 interface MultipleSelectChipProps {
   field: ControllerRenderProps<{
@@ -10,44 +16,89 @@ interface MultipleSelectChipProps {
     description: string
     due_date: Date
     priority: string | undefined
-    label: string | undefined
+    label: (string | undefined)[] | undefined
   }>
   label?: string
-  options: string[]
+  options: LabelOption[]
 }
 
 export default function MultipleSelectChip({
   field,
   label = "Select Labels",
-  options: initialOptions,
+  options,
 }: MultipleSelectChipProps) {
   const theme = useTheme()
-  const [options, setOptions] = useState<string[]>(initialOptions)
+  const [inputValue, setInputValue] = useState("")
+  const idToName = new Map(options.map((opt) => [opt.id, opt.name]))
+  const selectedIds: string[] = (Array.isArray(field.value) ? field.value : [])
+  .filter((id): id is string => typeof id === "string");
+  const selectedOptions = selectedIds
+    .map((id) => (idToName.has(id) ? { id, name: idToName.get(id)! } : null))
+    .filter((opt): opt is LabelOption => opt !== null)
+  const loadingRef = useRef(false)
+
+  const { mutateAsync } = useMutationApiRequest<{ id: string; name: string }>({
+    key: "create-label",
+  })
+  const createLabelApi = async (newLabel: string) => {
+    const {
+      data: { id, name },
+    } = await mutateAsync({ name: newLabel })
+    return { id, name }
+  }
+
+  const handleKeyDown = async (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (
+      event.key === "Enter" &&
+      inputValue.trim() !== "" &&
+      !options.some((opt) => opt.name === inputValue.trim())
+    ) {
+      event.preventDefault()
+
+      if (loadingRef.current) return
+
+      loadingRef.current = true
+
+      try {
+        const newLabel = await createLabelApi(inputValue.trim())
+        const newSelectedIds = [...selectedIds, newLabel.id]
+
+        field.onChange(newSelectedIds)
+        setInputValue("")
+      } catch (error) {
+        console.error("Gagal tambah label:", error)
+      } finally {
+        loadingRef.current = false
+      }
+    }
+  }
 
   return (
     <Autocomplete
       multiple
       freeSolo
       options={options}
-      value={
-        Array.isArray(field.value)
-          ? field.value
-          : field.value
-          ? [field.value]
-          : []
+      getOptionLabel={(option) =>
+        typeof option === "string" ? option : option.name
       }
+      value={selectedOptions}
+      inputValue={inputValue}
+      onInputChange={(_, newInputValue) => setInputValue(newInputValue)}
       onChange={(_, newValue) => {
-        const toAdd = newValue.filter((v) => !options.includes(v))
-        if (toAdd.length) setOptions((opts) => [...opts, ...toAdd])
-        field.onChange(newValue)
+        const filteredIds = newValue
+          .filter((val) => typeof val !== "string")
+          .map((val) => (val as LabelOption).id)
+        field.onChange(filteredIds)
       }}
-      renderTags={(tagValue: readonly string[], getTagProps) =>
-        tagValue.map((option: string, index: number) => (
+      renderTags={(tagValue: readonly LabelOption[], getTagProps) =>
+        tagValue.map((option, index) => (
           <Chip
             variant="outlined"
-            label={option}
+            label={option.name}
             {...getTagProps({ index })}
-            key={option}
+            key={option.id}
           />
         ))
       }
@@ -57,6 +108,7 @@ export default function MultipleSelectChip({
           variant="outlined"
           label={label}
           placeholder="Type and press Enter to add"
+          onKeyDown={handleKeyDown}
         />
       )}
       sx={{

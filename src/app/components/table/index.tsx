@@ -243,7 +243,6 @@ export default function UserTable() {
   })
   const rowCount = table.getRowModel().rows.length
 
-  console.log("pagination", pagination)
   const handleSelectAllClick = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.checked) {

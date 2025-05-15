@@ -14,7 +14,6 @@ type RefreshAccessTokenResponse = {
       userId: string
       name: string
       email: string
-      phone: string
     }
   }
 }

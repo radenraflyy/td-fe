@@ -24,8 +24,9 @@ import { AxiosError } from "axios"
 import { useState } from "react"
 import ButtonLoading from "../ButtonLoading"
 import CustomDatePicker from "../custom-date-picker"
-import MultipleSelectChip from "../select-add"
+import MultipleSelectChip, { type LabelOption } from "../select-add"
 import { type Todo, TodoSchema } from "./config"
+import useQueryApiRequest from "@/app/hooks/useApiRequest/useQueryApiRequest"
 
 interface DialogProps {
   open: boolean
@@ -36,16 +37,24 @@ export default function FormDialog({ open, onClose }: DialogProps) {
   const {
     control,
     handleSubmit,
-    formState: { isValid },
+    formState: { isValid, errors },
+    getValues,
+    reset,
   } = useForm({
-    mode: "onSubmit",
+    mode: "onChange",
     resolver: yupResolver(TodoSchema),
   })
+
+  console.log("getValues()", getValues())
+  console.log("errors", errors)
 
   const [priorityAnchor, setPriorityAnchor] = useState<HTMLElement | null>(null)
 
   const levels = [1, 2, 3, 4]
 
+  const { data: listLabels } = useQueryApiRequest<LabelOption[]>({
+    key: "list-labels",
+  })
   const { mutateAsync, isPending } = useMutationApiRequest<Todo>({
     key: "create-todos",
   })
@@ -54,6 +63,8 @@ export default function FormDialog({ open, onClose }: DialogProps) {
     try {
       console.log("data", data)
       mutateAsync(data)
+      reset()
+      onClose()
     } catch (error) {
       if (error instanceof AxiosError) {
         alert(error.response?.data.error || "Something went wrong")
@@ -128,7 +139,7 @@ export default function FormDialog({ open, onClose }: DialogProps) {
                 <MultipleSelectChip
                   field={field}
                   label="Labels (type @ to trigger)"
-                  options={["read", "sasa"]}
+                  options={listLabels || []}
                 />
               )}
             />
@@ -145,7 +156,7 @@ export default function FormDialog({ open, onClose }: DialogProps) {
                   <>
                     <Chip
                       icon={<Flag />}
-                      label={`P ${current}`}
+                      label={`P ${current || ""}`}
                       clickable
                       onClick={(e) => setPriorityAnchor(e.currentTarget)}
                       sx={{ cursor: "pointer" }}

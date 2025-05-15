@@ -14,7 +14,7 @@ export const todoMutations: MutationDataService<TodoMutationKeys> = {
   "create-label": {
     url: "/todo/label",
     method: "POST",
-    refetchQueries: [],
+    refetchQueries: ['list-labels'],
   },
   "create-comment": {
     url: "/todo/comment/:todo_id",
