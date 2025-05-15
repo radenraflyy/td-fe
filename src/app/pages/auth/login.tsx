@@ -15,6 +15,7 @@ import { useState } from "react"
 import { useForm, Controller } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { LoginSchema, LoginSchemaDefault } from "./config"
+import ButtonLoading from "@/app/components/ButtonLoading"
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -30,9 +31,7 @@ const Login = () => {
     defaultValues: LoginSchemaDefault,
   })
 
-  const onSubmit = (data) => {
-    console.log("Login data:", data)
-  }
+  const onSubmit = handleSubmit((data) => console.log("data", data))
 
   return (
     <Paper
@@ -59,12 +58,7 @@ const Login = () => {
         Harap masuk untuk memulai
       </Typography>
 
-      <Box
-        component="form"
-        noValidate
-        autoComplete="off"
-        onSubmit={handleSubmit(onSubmit)}
-      >
+      <Box component="form" noValidate autoComplete="off" onSubmit={onSubmit}>
         <Stack spacing={3}>
           <Controller
             name="email"
@@ -113,16 +107,18 @@ const Login = () => {
             )}
           />
 
-          <Button
+          <ButtonLoading
             variant="contained"
             color={"error"}
             size="large"
             fullWidth
             type="submit"
             disabled={!isValid}
+            text="Masuk"
+            loading={false}
           >
             Masuk
-          </Button>
+          </ButtonLoading>
         </Stack>
       </Box>
 

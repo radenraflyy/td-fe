@@ -1,20 +1,20 @@
+import ButtonLoading from "@/app/components/ButtonLoading"
+import { yupResolver } from "@hookform/resolvers/yup"
 import { Visibility, VisibilityOff } from "@mui/icons-material"
 import {
   Box,
-  Button,
   IconButton,
   InputAdornment,
   Link,
   Paper,
   Stack,
   TextField,
-  Typography,
+  Typography
 } from "@mui/material"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { RegisterSchema, RegisterSchemaDefault } from "./config"
-import { yupResolver } from "@hookform/resolvers/yup"
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -120,16 +120,16 @@ const Register = () => {
             )}
           />
 
-          <Button
+          <ButtonLoading
+            loading={false}
+            text="Daftar"
             variant="contained"
             color={"error"}
             size="large"
             fullWidth
             type="submit"
             disabled={!isValid}
-          >
-            Daftar
-          </Button>
+          />
         </Stack>
       </Box>
 
