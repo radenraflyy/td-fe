@@ -1,17 +1,9 @@
-import {
-  AccessTime,
-  AssignmentIndOutlined,
-  DescriptionOutlined,
-  PermIdentity,
-  PriorityHigh,
-  Schedule,
-  Update,
-} from "@mui/icons-material"
+import useQueryApiRequest from "@/app/hooks/useApiRequest/useQueryApiRequest"
+import { formatDateTime } from "@/app/utils/formatDate"
 import {
   Box,
   Checkbox,
   Paper,
-  Stack,
   Table,
   TableBody,
   TableCell,
@@ -20,229 +12,107 @@ import {
   TableRow,
   TableSortLabel,
 } from "@mui/material"
-import { visuallyHidden } from "@mui/utils"
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
-  type PaginationState,
+  type SortingState,
 } from "@tanstack/react-table"
-import React, { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
+import SearchBar from "../searchbar"
 import TablePagination from "../table-pagination"
-import type { Order, Todos } from "./types"
+import type { TodoData, TodoItem } from "./types"
 import DetailTodo from "../detail-todo"
+import { keepPreviousData } from "@tanstack/react-query"
 
 export default function UserTable() {
-  const [selected, setSelected] = useState<number[]>([])
+  const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
   const [openDetail, setOpenDetail] = useState(false)
-  const [order, setOrder] = useState<Order>("asc")
-  const [orderBy, setOrderBy] = useState<keyof Todos>()
-  const [pagination, setPagination] = useState<PaginationState>({
-    pageIndex: 1,
-    pageSize: 10,
+  const [sorting, setSorting] = useState<SortingState>([])
+  const [globalFilter, setGlobalFilter] = useState("")
+  const [selected, setSelected] = useState<number[]>([])
+
+  const orderBy = sorting.length > 0 ? sorting[0].id : "created_at"
+  const order = sorting.length > 0 && sorting[0].desc ? "desc" : "asc"
+
+  const { data: todos } = useQueryApiRequest<TodoData>({
+    key: "list-todos",
+    config: {
+      query: {
+        limit: pagination.pageSize,
+        offset: pagination.pageIndex + 1,
+        search: globalFilter,
+        order_by: orderBy,
+        order: order,
+      },
+    },
+    options: {
+      placeholderData: keepPreviousData,
+    },
   })
 
-  const columnHelper = useMemo(() => createColumnHelper<Todos>(), [])
+  const data = useMemo(() => todos?.items || [], [todos])
+  const totalCount = todos?.totalItems || 0
+
+  const columnHelper = createColumnHelper<TodoItem>()
   const columns = useMemo(
     () => [
       columnHelper.accessor("id", {
-        id: "id",
-        header: () => (
-          <Stack
-            component={"span"}
-            direction={"row"}
-            alignItems={"center"}
-            color={"#666666"}
-            gap={0.5}
-          >
-            <PermIdentity fontSize="small" />
-            ID
-          </Stack>
-        ),
-        cell: (info) => info.getValue(),
+        header: "Number",
+        cell: (info) => info.row.index + 1,
       }),
       columnHelper.accessor("title", {
-        id: "title",
-        header: () => (
-          <Stack
-            component={"span"}
-            direction={"row"}
-            alignItems={"center"}
-            color={"#666666"}
-            gap={0.5}
-          >
-            <AssignmentIndOutlined fontSize="small" />
-            Title
-          </Stack>
-        ),
+        header: "Title",
         cell: (info) => info.getValue(),
       }),
       columnHelper.accessor("description", {
-        id: "description",
-        header: () => (
-          <Stack
-            component={"span"}
-            direction={"row"}
-            alignItems={"center"}
-            color={"#666666"}
-            gap={0.5}
-          >
-            <DescriptionOutlined fontSize="small" />
-            Description
-          </Stack>
-        ),
+        header: "Description",
         cell: (info) => info.getValue(),
       }),
       columnHelper.accessor("due_date", {
-        id: "due_date",
-        header: () => (
-          <Stack
-            component={"span"}
-            direction={"row"}
-            alignItems={"center"}
-            color={"#666666"}
-            gap={0.5}
-          >
-            <Schedule fontSize="small" />
-            Due Date
-          </Stack>
-        ),
-        cell: (info) => info.getValue(),
+        header: "Due Date",
+        cell: (info) => formatDateTime(info.getValue()),
       }),
-      columnHelper.accessor("status", {
-        id: "is_done",
-        header: () => (
-          <Stack
-            component={"span"}
-            direction={"row"}
-            alignItems={"center"}
-            color={"#666666"}
-            gap={0.5}
-          >
-            <Update fontSize="small" />
-            Status
-          </Stack>
-        ),
-        cell: (info) => info.getValue(),
+      columnHelper.accessor("is_done", {
+        header: "Status",
+        cell: (info) => {
+          return info.getValue() ? "Done" : "Not Done"
+        },
       }),
       columnHelper.accessor("priority", {
-        id: "priority",
-        header: () => (
-          <Stack
-            component={"span"}
-            direction={"row"}
-            alignItems={"center"}
-            color={"#666666"}
-            gap={0.5}
-          >
-            <PriorityHigh fontSize="small" />
-            Priority
-          </Stack>
-        ),
+        header: "Priority",
         cell: (info) => info.getValue(),
       }),
       columnHelper.accessor("created_at", {
-        id: "created_at",
-        header: () => (
-          <Stack
-            component={"span"}
-            direction={"row"}
-            alignItems={"center"}
-            color={"#666666"}
-            gap={0.5}
-          >
-            <AccessTime fontSize="small" />
-            Date Created
-          </Stack>
-        ),
-        cell: (info) => info.getValue(),
+        header: "Display Date",
+        cell: (info) => formatDateTime(info.getValue()),
       }),
     ],
     [columnHelper]
   )
-  const data = useMemo<Todos[]>(
-    () => [
-      {
-        id: 1,
-        title: "Test",
-        description: "Test",
-        due_date: "Test",
-        status: "Test",
-        priority: "Test",
-        created_at: "Test",
-      },
-      {
-        id: 2,
-        title: "Test",
-        description: "Test",
-        due_date: "Test",
-        status: "Test",
-        priority: "Test",
-        created_at: "Test",
-      },
-      {
-        id: 3,
-        title: "Test",
-        description: "Test",
-        due_date: "Test",
-        status: "Test",
-        priority: "Test",
-        created_at: "Test",
-      },
-      {
-        id: 4,
-        title: "Test",
-        description: "Test",
-        due_date: "Test",
-        status: "Test",
-        priority: "Test",
-        created_at: "Test",
-      },
-      {
-        id: 5,
-        title: "Test",
-        description: "Test",
-        due_date: "Test",
-        status: "Test",
-        priority: "Test",
-        created_at: "Test",
-      },
-      {
-        id: 6,
-        title: "Test",
-        description: "Test",
-        due_date: "Test",
-        status: "Test",
-        priority: "Test",
-        created_at: "Test",
-      },
-      {
-        id: 7,
-        title: "Test",
-        description: "Test",
-        due_date: "Test",
-        status: "Test",
-        priority: "Test",
-        created_at: "Test",
-      },
-    ],
-    []
-  )
-  const rowModel = useMemo(() => getCoreRowModel(), [])
+
   const table = useReactTable({
-    columns,
     data,
-    rowCount: data.length,
+    columns,
+    pageCount: Math.ceil(totalCount / pagination.pageSize),
     state: {
       pagination,
+      sorting,
+      globalFilter,
     },
-    getCoreRowModel: rowModel,
+    manualPagination: true,
+    manualSorting: true,
+    manualFiltering: true,
     onPaginationChange: setPagination,
+    onSortingChange: setSorting,
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    autoResetPageIndex: false,
     debugTable: true,
   })
-  const rowCount = table.getRowModel().rows.length
 
+  const rowCount = table.getRowModel().rows.length
   const handleSelectAllClick = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.checked) {
@@ -254,21 +124,21 @@ export default function UserTable() {
     [table]
   )
 
-  const handleRequestSort = (property: keyof Todos) => {
-    const isAsc = orderBy === property && order === "asc"
-    setOrder(isAsc ? "desc" : "asc")
-    setOrderBy(property)
-  }
-
-  console.log("RENDER USER TABLE")
-
   return (
     <Box sx={{ width: "100%" }}>
+      <SearchBar
+        value={globalFilter}
+        onChange={(e) => {
+          setGlobalFilter(e.target.value)
+          setPagination((old) => ({ ...old, pageIndex: 0 }))
+        }}
+      />
+
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
-            {table.getHeaderGroups().map((hg) => (
-              <TableRow key={hg.id}>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
                 <TableCell padding="checkbox">
                   <Checkbox
                     indeterminate={
@@ -278,22 +148,29 @@ export default function UserTable() {
                     onChange={handleSelectAllClick}
                   />
                 </TableCell>
-                {hg.headers.map((h) => (
-                  <TableCell key={h.id}>
-                    <TableSortLabel
-                      active={true}
-                      direction={orderBy === h.id ? order : "desc"}
-                      onClick={() => handleRequestSort(h.id as keyof Todos)}
-                    >
-                      {flexRender(h.column.columnDef.header, h.getContext())}
-                      {orderBy === h.id ? (
-                        <Box component="span" sx={visuallyHidden}>
-                          {order === "desc"
-                            ? "sorted descending"
-                            : "sorted ascending"}
-                        </Box>
-                      ) : null}
-                    </TableSortLabel>
+                {headerGroup.headers.map((header) => (
+                  <TableCell key={header.id}>
+                    {header.isPlaceholder ? null : (
+                      <TableSortLabel
+                        active={true}
+                        direction={
+                          sorting.length > 0 && sorting[0].desc ? "desc" : "asc"
+                        }
+                        onClick={() => {
+                          const isDesc =
+                            sorting.length > 0 &&
+                            sorting[0].desc &&
+                            sorting[0].id === header.column.id
+                          setSorting([{ id: header.column.id, desc: !isDesc }])
+                          setPagination((old) => ({ ...old, pageIndex: 0 }))
+                        }}
+                      >
+                        {flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                      </TableSortLabel>
+                    )}
                   </TableCell>
                 ))}
               </TableRow>
@@ -330,16 +207,21 @@ export default function UserTable() {
           </TableBody>
         </Table>
       </TableContainer>
+
       <TablePagination
-        count={rowCount}
-        page={table.getState().pagination.pageIndex}
-        rowsPerPage={table.getState().pagination.pageSize}
-        onPageChange={(_, page) => table.setPageIndex(page)}
-        onRowsPerPageChange={(e) => {
-          table.setPageSize(Number(e.target.value))
-        }}
-        hasNext={!table.getCanNextPage()}
-        hasPrev={!table.getCanPreviousPage()}
+        count={totalCount}
+        page={pagination.pageIndex + 1}
+        rowsPerPage={pagination.pageSize}
+        onPageChange={(_, page) =>
+          setPagination((old) => ({ ...old, pageIndex: page - 1 }))
+        }
+        onRowsPerPageChange={(e) =>
+          setPagination((old) => ({
+            ...old,
+            pageSize: Number(e.target.value),
+            pageIndex: 0,
+          }))
+        }
       />
       <DetailTodo
         open={openDetail}
