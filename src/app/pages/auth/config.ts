@@ -6,7 +6,10 @@ export const LoginSchema = yup.object().shape({
 })
 
 export const RegisterSchema = yup.object().shape({
-  name: yup.string().required("Name is required"),
+  name: yup
+    .string()
+    .required("Name is required")
+    .min(6, "Name must be at least 6 characters"),
   email: yup.string().email("Invalid email").required("Email is required"),
   password: yup.string().required("Password is required"),
 })

@@ -2,7 +2,7 @@ import { useCallback } from "react"
 
 import axiosWithAuth from "@/app/utils/axiosWithAuth"
 import { useQueryClient } from "@tanstack/react-query"
-import axios, { AxiosError } from "axios"
+import { AxiosError } from "axios"
 import { useNavigate } from "react-router-dom"
 
 import { axiosWithoutAuth } from "../../utils/axiosWithoutAuth"
@@ -29,15 +29,15 @@ export const useAuth = () => {
   const queryClient = useQueryClient()
 
   const signIn = useCallback(
-    async (value: { emailPhone: string; password: string }) => {
-      const newValue = value.emailPhone.includes("@")
-        ? value.emailPhone
-        : value.emailPhone.replace(/^62|^0/, "")
+    async (value: { email: string; password: string }) => {
+      const newValue = value.email.includes("@")
+        ? value.email
+        : value.email.replace(/^62|^0/, "")
       const { data: result } = await axiosWithoutAuth<Response>({
         method: "POST",
         url: "/auth/login",
         data: {
-          email_phone: newValue,
+          email: newValue,
           password: value.password,
         },
       })
@@ -49,13 +49,6 @@ export const useAuth = () => {
     },
     []
   )
-
-  const forgotPassword = useCallback(async (value: { email: string }) => {
-    const { data: result } = await axios.post<Response>(
-      `/auth/send-reset-password/${value.email}`
-    )
-    return result
-  }, [])
 
   const signOut = useCallback(async () => {
     try {
@@ -73,5 +66,5 @@ export const useAuth = () => {
     }
   }, [navigate, queryClient])
 
-  return { signIn, signOut, forgotPassword }
+  return { signIn, signOut }
 }

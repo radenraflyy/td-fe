@@ -9,12 +9,14 @@ import {
   Paper,
   Stack,
   TextField,
-  Typography
+  Typography,
 } from "@mui/material"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { RegisterSchema, RegisterSchemaDefault } from "./config"
+import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
+import { AxiosError } from "axios"
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -23,10 +25,33 @@ const Register = () => {
   const {
     control,
     formState: { isValid },
+    reset,
+    handleSubmit,
   } = useForm({
     mode: "onChange",
     resolver: yupResolver(RegisterSchema),
     defaultValues: RegisterSchemaDefault,
+  })
+
+  const { mutateAsync, isPending } = useMutationApiRequest({
+    key: "register",
+    needAuth: false,
+  })
+
+  const handleSubmitForm = handleSubmit(async (data) => {
+    try {
+      await mutateAsync(data, {
+        onSuccess: () => {
+          navigate("/auth/login")
+        },
+      })
+      reset()
+    } catch (error) {
+      console.log("👻 ~ handleSubmitForm ~ error:", error)
+      if (error instanceof AxiosError) {
+        alert(error.response?.data.error || "Something went wrong")
+      }
+    }
   })
 
   return (
@@ -54,7 +79,12 @@ const Register = () => {
         Isi form di bawah untuk membuat akun baru
       </Typography>
 
-      <Box component="form" noValidate autoComplete="off">
+      <Box
+        component="form"
+        noValidate
+        autoComplete="off"
+        onSubmit={handleSubmitForm}
+      >
         <Stack spacing={3}>
           <Controller
             name="name"
@@ -121,7 +151,7 @@ const Register = () => {
           />
 
           <ButtonLoading
-            loading={false}
+            loading={isPending}
             text="Daftar"
             variant="contained"
             color={"error"}

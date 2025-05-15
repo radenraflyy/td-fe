@@ -1,8 +1,8 @@
+import ButtonLoading from "@/app/components/ButtonLoading"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { Visibility, VisibilityOff } from "@mui/icons-material"
 import {
   Box,
-  Button,
   IconButton,
   InputAdornment,
   Link,
@@ -12,26 +12,45 @@ import {
   Typography,
 } from "@mui/material"
 import { useState } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { LoginSchema, LoginSchemaDefault } from "./config"
-import ButtonLoading from "@/app/components/ButtonLoading"
+import { useAuth } from "@/app/hooks/use-auth"
+import { AxiosError } from "axios"
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
+  const [isPending, setIsPending] = useState(false)
   const navigate = useNavigate()
+  const { signIn } = useAuth()
 
   const {
     control,
     handleSubmit,
     formState: { errors, isValid },
+    reset,
+    setError,
   } = useForm({
     mode: "onChange",
     resolver: yupResolver(LoginSchema),
     defaultValues: LoginSchemaDefault,
   })
 
-  const onSubmit = handleSubmit((data) => console.log("data", data))
+  const handleSubmitForm = handleSubmit(async (data) => {
+    setIsPending(true)
+    try {
+      await signIn(data)
+      reset()
+
+      navigate("/")
+    } catch (error) {
+      if (!(error instanceof AxiosError)) return console.error(error)
+      setError("email", { message: "Email tidak terdaftar" })
+      setError("password", { message: "Kata sandi salah" })
+    } finally {
+      setIsPending(false)
+    }
+  })
 
   return (
     <Paper
@@ -58,7 +77,12 @@ const Login = () => {
         Harap masuk untuk memulai
       </Typography>
 
-      <Box component="form" noValidate autoComplete="off" onSubmit={onSubmit}>
+      <Box
+        component="form"
+        noValidate
+        autoComplete="off"
+        onSubmit={handleSubmitForm}
+      >
         <Stack spacing={3}>
           <Controller
             name="email"
@@ -115,7 +139,7 @@ const Login = () => {
             type="submit"
             disabled={!isValid}
             text="Masuk"
-            loading={false}
+            loading={isPending}
           >
             Masuk
           </ButtonLoading>
