@@ -7,7 +7,7 @@ type ColumnSort = {
 export type SortingState = ColumnSort[]
 
 export interface TodoItem {
-  id: number
+  id: string
   title: string
   description: string
   due_date: string

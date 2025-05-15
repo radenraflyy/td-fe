@@ -1,9 +1,10 @@
 import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
 import useQueryApiRequest from "@/app/hooks/useApiRequest/useQueryApiRequest"
 import { formatDateTime } from "@/app/utils/formatDate"
-import { FilterList } from "@mui/icons-material"
+import { Delete, FilterList } from "@mui/icons-material"
 import {
   Box,
+  Button,
   Checkbox,
   colors,
   IconButton,
@@ -39,14 +40,14 @@ export default function UserTable() {
   const [openDetail, setOpenDetail] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = useState("")
-  const [selected, setSelected] = useState<number[]>([])
+  const [selected, setSelected] = useState<string[]>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [openFilter, setOpenFilter] = useState(false)
+  const [todoId, setTodoId] = useState("")
 
   const orderBy = sorting.length > 0 ? sorting[0].id : "created_at"
   const order = sorting.length > 0 ? (sorting[0].desc ? "desc" : "asc") : "desc"
 
-  console.log('columnFilters', columnFilters)
   const { data: todos } = useQueryApiRequest<TodoData>({
     key: "list-todos",
     config: {
@@ -69,6 +70,27 @@ export default function UserTable() {
   const { mutateAsync: updateTodo } = useMutationApiRequest({
     key: "update-todo",
   })
+  const { mutateAsync: deleteTodo } = useMutationApiRequest({
+    key: "delete-todo",
+    config: {
+      params: {
+        todo_id: todoId,
+      },
+    },
+  })
+
+  const handleDeleteTodo = useCallback(
+    async (id: string) => {
+      try {
+        setTodoId(id)
+        await deleteTodo({})
+      } catch (error) {
+        console.log("error", error)
+        console.error(error)
+      }
+    },
+    [deleteTodo]
+  )
 
   const data = useMemo(() => todos?.items || [], [todos])
   const totalCount = todos?.totalItems || 0
@@ -107,8 +129,23 @@ export default function UserTable() {
         header: "Display Date",
         cell: (info) => formatDateTime(info.getValue()),
       }),
+      columnHelper.accessor("id", {
+        header: "Action",
+        cell: (info) => {
+          return (
+            <Button
+              onClick={(e) => {
+                e.stopPropagation()
+                return handleDeleteTodo(info.getValue())
+              }}
+            >
+              <Delete color="error" />
+            </Button>
+          )
+        },
+      }),
     ],
-    [columnHelper, pagination.pageIndex, pagination.pageSize]
+    [columnHelper, handleDeleteTodo, pagination.pageIndex, pagination.pageSize]
   )
 
   const table = useReactTable({
@@ -225,7 +262,7 @@ export default function UserTable() {
                   />
                 </TableCell>
                 {headerGroup.headers.map((header) => (
-                  <TableCell key={header.id}>
+                  <TableCell key={`${header.index}-${pagination.pageIndex}`}>
                     {header.isPlaceholder ? null : (
                       <TableSortLabel
                         active={true}
@@ -253,9 +290,9 @@ export default function UserTable() {
             ))}
           </TableHead>
           <TableBody>
-            {table.getRowModel().rows.map((row) => (
+            {table.getRowModel().rows.map((row, index) => (
               <TableRow
-                key={row.id}
+                key={index}
                 onClick={() => setOpenDetail(true)}
                 sx={{
                   cursor: "pointer",
@@ -291,8 +328,8 @@ export default function UserTable() {
                     }}
                   />
                 </TableCell>
-                {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id}>
+                {row.getVisibleCells().map((cell, index) => (
+                  <TableCell key={index}>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
