@@ -1,16 +1,13 @@
 import { forwardRef } from "react"
 
-import {
-  FormHelperText,
-  InputLabel as MuiInputLabel
-} from "@mui/material"
+import { FormHelperText, InputLabel as MuiInputLabel } from "@mui/material"
 import { styled } from "@mui/system"
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers"
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs"
 import { Dayjs } from "dayjs"
 
-import colors from "@/constant/colors"
 
+import colorsPalette from "@/constant/colors"
 import type { TCustomDatePickerProps } from "./types"
 
 const InputLabel = styled(MuiInputLabel)(() => ({
@@ -53,14 +50,14 @@ const CustomDatePicker = forwardRef<
               sx: {
                 borderRadius: "12px",
                 "&.MuiPickersDay-root.Mui-selected": {
-                  backgroundColor: colors["primary"],
+                  backgroundColor: colorsPalette["winter-wizard-500"],
                 },
                 ":not(.Mui-selected)": {
-                  backgroundColor: colors["neutral-100"],
-                  borderColor: colors["primary"],
+                  backgroundColor: colorsPalette["richblack-200"],
+                  borderColor: colorsPalette["winter-wizard-500"],
                 },
                 ":hover": {
-                  backgroundColor: colors["neutral-300"],
+                  backgroundColor: colorsPalette["richblack-100"],
                 },
                 ...slotProps?.day,
               },
@@ -72,7 +69,6 @@ const CustomDatePicker = forwardRef<
             ...slotProps,
           }}
           slots={{
-            // actionBar: ActionBar,
             ...slots,
           }}
         />

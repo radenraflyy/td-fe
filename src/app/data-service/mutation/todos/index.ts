@@ -6,6 +6,7 @@ export type TodoMutationKeys =
   | "create-comment"
   | "update-todo"
   | "delete-todo"
+  | "update-detail-todo"
 
 export const todoMutations: MutationDataService<TodoMutationKeys> = {
   "create-todos": {
@@ -32,5 +33,10 @@ export const todoMutations: MutationDataService<TodoMutationKeys> = {
     url: "/todo/:todo_id",
     method: "DELETE",
     refetchQueries: ["list-todos"],
+  },
+  "update-detail-todo": {
+    url: "/todo/detail/:todo_id",
+    method: "PATCH",
+    refetchQueries: ['list-todos'],
   },
 }

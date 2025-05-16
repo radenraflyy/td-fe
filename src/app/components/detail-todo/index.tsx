@@ -1,5 +1,5 @@
 import useQueryApiRequest from "@/app/hooks/useApiRequest/useQueryApiRequest"
-import { formatDateTime } from "@/app/utils/formatDate"
+import { yupResolver } from "@hookform/resolvers/yup"
 import {
   Box,
   Button,
@@ -13,13 +13,20 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
-import React from "react"
+import dayjs from "dayjs"
+import { useEffect } from "react"
+import { Controller, useForm } from "react-hook-form"
 import CommentForm from "../comment-form"
+import CustomDatePicker from "../custom-date-picker"
+import { InputSelectedChip } from "../input-select-chip"
+import MultipleSelectChip, { type LabelOption } from "../select-add"
+import { TodoSchema } from "./config"
 import type {
   FormDialogProps,
   GetDetailTodoResponse,
   TodoComment,
 } from "./type"
+import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
 
 export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
   const { data } = useQueryApiRequest<GetDetailTodoResponse>({
@@ -34,6 +41,19 @@ export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
     },
   })
 
+  const { data: listLabels } = useQueryApiRequest<LabelOption[]>({
+    key: "list-labels",
+  })
+
+  const { mutateAsync } = useMutationApiRequest({
+    key: "update-detail-todo",
+    config: {
+      params: {
+        todo_id: info.todoId,
+      },
+    },
+  })
+
   const commentsWithName: TodoComment[] = data?.comment
     ? data.comment.map((c) => ({
         name: data.name,
@@ -41,32 +61,76 @@ export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
         created_at: c.created_at,
       }))
     : []
+
+  const { control, reset, handleSubmit } = useForm({
+    mode: "onChange",
+    resolver: yupResolver(TodoSchema),
+  })
+
+  const onSubmit = handleSubmit(async (data) => {
+    try {
+      await mutateAsync(data)
+      onClose()
+    } catch (error) {
+      console.log(error)
+    }
+  })
+
+  useEffect(() => {
+    reset({
+      title: data?.title,
+      description: data?.description,
+      due_date: data?.due_date ? new Date(data.due_date) : undefined,
+      priority: data?.priority,
+      label: data?.label?.map((l) => l.Id) || [],
+    })
+  }, [
+    data?.description,
+    data?.due_date,
+    data?.label,
+    data?.priority,
+    data?.title,
+    reset,
+  ])
+
   return (
     <Dialog open={info.open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ p: 2 }}>
         <Stack direction="row" alignItems="center" spacing={1}>
           <Checkbox checked={data?.is_done} disableRipple disabled />
-          <TextField
-            placeholder="Task title…"
-            variant="standard"
-            fullWidth
-            defaultValue={data?.title}
-            InputProps={{ disableUnderline: true }}
-            sx={{ fontSize: "1.5rem", fontWeight: 500 }}
+          <Controller
+            control={control}
+            name="title"
+            render={({ field }) => (
+              <TextField
+                placeholder="Task title…"
+                variant="standard"
+                fullWidth
+                {...field}
+                InputProps={{ disableUnderline: true }}
+                sx={{ fontSize: "1.5rem", fontWeight: 500 }}
+              />
+            )}
           />
         </Stack>
       </DialogTitle>
 
       <DialogContent dividers sx={{ display: "flex", p: 0 }}>
         <Box flex={1} p={3}>
-          <TextField
-            placeholder="Description"
-            multiline
-            minRows={1.5}
-            fullWidth
-            defaultValue={data?.description}
-            variant="standard"
-            sx={{ mb: 2 }}
+          <Controller
+            control={control}
+            name="description"
+            render={({ field }) => (
+              <TextField
+                placeholder="Description"
+                multiline
+                {...field}
+                minRows={1.5}
+                fullWidth
+                variant="standard"
+                sx={{ mb: 2 }}
+              />
+            )}
           />
 
           <Stack direction="row" spacing={1} mb={3}>
@@ -76,61 +140,65 @@ export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
 
         <Divider orientation="vertical" flexItem />
         <Box width={240} p={3}>
-          <ListItem
-            label="Date"
-            endElement={
-              <Typography variant="body2">
-                {data?.due_date ? formatDateTime(data.due_date) : "–"}
-              </Typography>
-            }
-          />
-          <ListItem
-            label="Priority"
-            endElement={<Typography>Priority {data?.priority}</Typography>}
-          />
-          <ListItem
-            label="Labels"
-            endElement={
-              <Stack direction="column" spacing={1} alignItems={"flex-end"}>
-                {data?.label?.map((label, idx) => (
-                  <Typography key={label.Id} variant="body2">
-                    {idx + 1}. {label.Name} || '-'
-                  </Typography>
-                ))}
-              </Stack>
-            }
-          />
+          <Stack direction="column" spacing={1} mb={2}>
+            <Typography variant="subtitle2" component="label">
+              Due Date
+            </Typography>
+            <Controller
+              name="due_date"
+              control={control}
+              render={({ field, fieldState }) => (
+                <CustomDatePicker
+                  value={field.value ? dayjs(field.value) : null}
+                  onChange={(val) =>
+                    field.onChange(val ? dayjs(val).format("YYYY-MM-DD") : "")
+                  }
+                  slotProps={{
+                    textField: {
+                      error: Boolean(fieldState.error),
+                      helperText: fieldState.error?.message,
+                    },
+                  }}
+                />
+              )}
+            />
+          </Stack>
+          <Stack direction="column" spacing={1} mb={2}>
+            <Typography variant="subtitle2" component="label">
+              Priority
+            </Typography>
+            <Controller
+              name="priority"
+              control={control}
+              render={({ field }) => (
+                <InputSelectedChip
+                  value={field.value ? Number(field.value) : undefined}
+                  onChange={field.onChange}
+                />
+              )}
+            />
+          </Stack>
+          <Stack direction="column" spacing={1}>
+            <Typography variant="subtitle2" component="label">
+              Labels
+            </Typography>
+            <Controller
+              name="label"
+              control={control}
+              render={({ field }) => (
+                <MultipleSelectChip field={field} options={listLabels || []} />
+              )}
+            />
+          </Stack>
         </Box>
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" color="primary" onClick={() => onAdd({})}>
+        <Button variant="contained" color="primary" onClick={onSubmit}>
           Add task
         </Button>
       </DialogActions>
     </Dialog>
-  )
-}
-
-function ListItem({
-  label,
-  endElement,
-}: {
-  label: string
-  endElement: React.ReactNode
-}) {
-  return (
-    <Box
-      display="flex"
-      justifyContent="space-between"
-      alignItems="center"
-      mb={2}
-    >
-      <Typography variant="body2" color="text.secondary">
-        {label}
-      </Typography>
-      {endElement}
-    </Box>
   )
 }

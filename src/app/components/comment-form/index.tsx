@@ -1,4 +1,5 @@
 import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
+import { formatDateTime } from "@/app/utils/formatDate"
 import { ExpandLess, ExpandMore } from "@mui/icons-material"
 import {
   Avatar,
@@ -77,7 +78,7 @@ export default function CollapsibleComments({
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography variant="subtitle2">{c.name}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {c.created_at}
+                      {formatDateTime(c.created_at)}
                     </Typography>
                   </Stack>
                   <Typography variant="body2">{c.comment}</Typography>

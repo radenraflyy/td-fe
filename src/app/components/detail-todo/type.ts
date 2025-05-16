@@ -7,7 +7,7 @@ export interface FormDialogProps {
   onAdd: (data: unknown) => void
 }
 
-export interface Label {
+export interface LabelTodo {
   Id: string
   Name: string
 }
@@ -25,7 +25,7 @@ export interface TodoDetail {
   due_date: string
   is_done: boolean
   priority: string
-  label: Label[]
+  label: LabelTodo[]
   comment: TodoComment[] | null
 }
 

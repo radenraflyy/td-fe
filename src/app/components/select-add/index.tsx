@@ -18,20 +18,19 @@ interface MultipleSelectChipProps {
     priority: string | undefined
     label: (string | undefined)[] | undefined
   }>
-  label?: string
   options: LabelOption[]
 }
 
 export default function MultipleSelectChip({
   field,
-  label = "Select Labels",
   options,
 }: MultipleSelectChipProps) {
   const theme = useTheme()
   const [inputValue, setInputValue] = useState("")
   const idToName = new Map(options.map((opt) => [opt.id, opt.name]))
-  const selectedIds: string[] = (Array.isArray(field.value) ? field.value : [])
-  .filter((id): id is string => typeof id === "string");
+  const selectedIds: string[] = (
+    Array.isArray(field.value) ? field.value : []
+  ).filter((id): id is string => typeof id === "string")
   const selectedOptions = selectedIds
     .map((id) => (idToName.has(id) ? { id, name: idToName.get(id)! } : null))
     .filter((opt): opt is LabelOption => opt !== null)
@@ -106,7 +105,6 @@ export default function MultipleSelectChip({
         <TextField
           {...params}
           variant="outlined"
-          label={label}
           placeholder="Type and press Enter to add"
           onKeyDown={handleKeyDown}
         />

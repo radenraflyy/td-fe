@@ -4,30 +4,25 @@ import { Controller, useForm } from "react-hook-form"
 import {
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
   Stack,
   TextField,
+  Typography,
 } from "@mui/material"
 
 import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
 import useQueryApiRequest from "@/app/hooks/useApiRequest/useQueryApiRequest"
 import { yupResolver } from "@hookform/resolvers/yup"
-import { Check, Flag } from "@mui/icons-material"
 import { AxiosError } from "axios"
-import { useState } from "react"
 import ButtonLoading from "../ButtonLoading"
 import CustomDatePicker from "../custom-date-picker"
+import { InputSelectedChip } from "../input-select-chip"
 import MultipleSelectChip, { type LabelOption } from "../select-add"
-import { type Todo, TodoSchema } from "./config"
 import { SnackBarResultController } from "../snackbar"
+import { type Todo, TodoSchema } from "./config"
 
 interface DialogProps {
   open: boolean
@@ -44,10 +39,6 @@ export default function FormDialog({ open, onClose }: DialogProps) {
     mode: "onChange",
     resolver: yupResolver(TodoSchema),
   })
-
-  const [priorityAnchor, setPriorityAnchor] = useState<HTMLElement | null>(null)
-
-  const levels = [1, 2, 3, 4]
 
   const { data: listLabels } = useQueryApiRequest<LabelOption[]>({
     key: "list-labels",
@@ -82,15 +73,20 @@ export default function FormDialog({ open, onClose }: DialogProps) {
             name="title"
             control={control}
             render={({ field, fieldState }) => (
-              <TextField
-                variant="standard"
-                fullWidth
-                placeholder="Task title…"
-                {...field}
-                error={Boolean(fieldState.error)}
-                sx={{ fontSize: "1.5rem", fontWeight: 500 }}
-                autoFocus
-              />
+              <>
+                <Typography variant="subtitle2" component="label">
+                  Title
+                </Typography>
+                <TextField
+                  variant="standard"
+                  fullWidth
+                  placeholder="Task title…"
+                  {...field}
+                  error={Boolean(fieldState.error)}
+                  sx={{ fontSize: "1.5rem", fontWeight: 500 }}
+                  autoFocus
+                />
+              </>
             )}
           />
         </DialogTitle>
@@ -100,17 +96,22 @@ export default function FormDialog({ open, onClose }: DialogProps) {
             name="description"
             control={control}
             render={({ field, fieldState }) => (
-              <TextField
-                multiline
-                minRows={1}
-                fullWidth
-                variant="standard"
-                placeholder="Description"
-                sx={{ mb: 2 }}
-                {...field}
-                error={Boolean(fieldState.error)}
-                helperText={fieldState.error?.message}
-              />
+              <>
+                <Typography variant="subtitle2" component="label">
+                  Description
+                </Typography>
+                <TextField
+                  multiline
+                  minRows={1}
+                  fullWidth
+                  variant="standard"
+                  placeholder="Description"
+                  sx={{ mb: 2 }}
+                  {...field}
+                  error={Boolean(fieldState.error)}
+                  helperText={fieldState.error?.message}
+                />
+              </>
             )}
           />
 
@@ -118,19 +119,24 @@ export default function FormDialog({ open, onClose }: DialogProps) {
             name="due_date"
             control={control}
             render={({ field, fieldState }) => (
-              <CustomDatePicker
-                value={field.value ? dayjs(field.value) : null}
-                onChange={(val) =>
-                  field.onChange(val ? dayjs(val).format("YYYY-MM-DD") : "")
-                }
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    error: Boolean(fieldState.error),
-                    helperText: fieldState.error?.message,
-                  },
-                }}
-              />
+              <>
+                <Typography variant="subtitle2" component="label">
+                  Due Date
+                </Typography>
+                <CustomDatePicker
+                  value={field.value ? dayjs(field.value) : null}
+                  onChange={(val) =>
+                    field.onChange(val ? dayjs(val).format("YYYY-MM-DD") : "")
+                  }
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      error: Boolean(fieldState.error),
+                      helperText: fieldState.error?.message,
+                    },
+                  }}
+                />
+              </>
             )}
           />
           <Stack mt={2}>
@@ -138,11 +144,15 @@ export default function FormDialog({ open, onClose }: DialogProps) {
               name="label"
               control={control}
               render={({ field }) => (
-                <MultipleSelectChip
-                  field={field}
-                  label="Labels (type @ to trigger)"
-                  options={listLabels || []}
-                />
+                <>
+                  <Typography variant="subtitle2" component="label">
+                    Label
+                  </Typography>
+                  <MultipleSelectChip
+                    field={field}
+                    options={listLabels || []}
+                  />
+                </>
               )}
             />
           </Stack>
@@ -151,56 +161,16 @@ export default function FormDialog({ open, onClose }: DialogProps) {
               name="priority"
               control={control}
               render={({ field }) => {
-                const open = Boolean(priorityAnchor)
-                const current = field.value
-
                 return (
-                  <>
-                    <Chip
-                      icon={<Flag />}
-                      label={`P ${current || ""}`}
-                      clickable
-                      onClick={(e) => setPriorityAnchor(e.currentTarget)}
-                      sx={{ cursor: "pointer" }}
+                  <Box display={"flex"} flexDirection={"column"} gap={0.5}>
+                    <Typography variant="subtitle2" component="label">
+                      Priority
+                    </Typography>
+                    <InputSelectedChip
+                      value={field.value ? Number(field.value) : undefined}
+                      onChange={field.onChange}
                     />
-
-                    <Menu
-                      anchorEl={priorityAnchor}
-                      open={open}
-                      onClose={() => setPriorityAnchor(null)}
-                    >
-                      {levels.map((lvl) => (
-                        <MenuItem
-                          key={lvl}
-                          selected={Number(current) === lvl}
-                          onClick={() => {
-                            field.onChange(lvl)
-                            setPriorityAnchor(null)
-                          }}
-                        >
-                          <ListItemIcon>
-                            <Flag
-                              fontSize="small"
-                              sx={{
-                                color:
-                                  lvl === 1
-                                    ? "error.main"
-                                    : lvl === 2
-                                    ? "warning.main"
-                                    : lvl === 3
-                                    ? "info.main"
-                                    : "success.main",
-                              }}
-                            />
-                          </ListItemIcon>
-                          <ListItemText>Priority {lvl}</ListItemText>
-                          {Number(current) === lvl && (
-                            <Check fontSize="small" />
-                          )}
-                        </MenuItem>
-                      ))}
-                    </Menu>
-                  </>
+                  </Box>
                 )
               }}
             />
