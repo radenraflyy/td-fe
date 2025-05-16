@@ -12,6 +12,7 @@ import {
 import { Stack } from "@mui/material"
 
 import type { DialogModificationProps } from "./types"
+import colorsPalette from "@/constant/colors"
 
 const DialogWrapper: React.FC<DialogModificationProps> = (props) => (
   <Dialog
@@ -117,6 +118,9 @@ const DialogWrapper: React.FC<DialogModificationProps> = (props) => (
             loading={props.options?.rightButtonLoading}
             disabled={props.options?.rightButtonDisable}
             autoFocus
+            sx={{
+              backgroundColor: colorsPalette["yellow-orange"],
+            }}
           >
             <Typography variant="Heading4" fontWeight={"500"}>
               {props.options?.rightButtonTitle}

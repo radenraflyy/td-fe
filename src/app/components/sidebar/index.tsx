@@ -1,4 +1,5 @@
-import { Add, DoorBack, Inbox, Logout, Menu } from "@mui/icons-material"
+import { useAuth } from "@/app/hooks/use-auth"
+import { Add, Inbox, Logout, Menu } from "@mui/icons-material"
 import {
   Avatar,
   Box,
@@ -16,9 +17,9 @@ import {
   useTheme,
 } from "@mui/material"
 import { useState } from "react"
-import FormDialog from "../form-dialog"
 import { useLocation } from "react-router-dom"
-import { useAuth } from "@/app/hooks/use-auth"
+import FormDialog from "../form-dialog"
+import { DialogConfirmationController } from "../dialog-confirmation"
 
 const drawerWidth = 250
 const miniWidth = 56
@@ -119,7 +120,15 @@ export default function Sidebar({ variant, open, onClose }: SidebarProps) {
             variant="outlined"
             fullWidth
             color="secondary"
-            onClick={signOut}
+            onClick={() =>
+              DialogConfirmationController.open({
+                title: "Logout",
+                description: "Anda yakin akan logout?",
+                cancelButtonTitle: "Batal",
+                confirmButtonTitle: "Logout",
+                onConfirm: () => signOut(),
+              })
+            }
             startIcon={<Logout color="action" />}
           >
             {open && (

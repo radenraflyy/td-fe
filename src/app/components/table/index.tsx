@@ -87,7 +87,7 @@ export default function UserTable() {
       DialogConfirmationController.open({
         title: "Delete Todo",
         description: "Anda yakin akan menghapus todo ini?",
-        cancelButtonTitle: "Cancel",
+        cancelButtonTitle: "Batal",
         confirmButtonTitle: "Delete",
         onConfirm: async (closeDialog) => {
           try {
