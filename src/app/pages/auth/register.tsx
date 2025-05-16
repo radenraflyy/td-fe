@@ -1,4 +1,6 @@
 import ButtonLoading from "@/app/components/ButtonLoading"
+import { SnackBarResultController } from "@/app/components/snackbar"
+import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
 import { yupResolver } from "@hookform/resolvers/yup"
 import { Visibility, VisibilityOff } from "@mui/icons-material"
 import {
@@ -11,12 +13,11 @@ import {
   TextField,
   Typography,
 } from "@mui/material"
+import { AxiosError } from "axios"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { useNavigate } from "react-router-dom"
 import { RegisterSchema, RegisterSchemaDefault } from "./config"
-import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
-import { AxiosError } from "axios"
 
 const Register = () => {
   const [showPassword, setShowPassword] = useState(false)
@@ -49,7 +50,12 @@ const Register = () => {
     } catch (error) {
       console.log("👻 ~ handleSubmitForm ~ error:", error)
       if (error instanceof AxiosError) {
-        alert(error.response?.data.error || "Something went wrong")
+        SnackBarResultController.open({
+          content: error.response?.data.error,
+          variant: "error",
+          closeDuration: 3000,
+          snackbarOrigin: { horizontal: "center", vertical: "top" },
+        })
       }
     }
   })

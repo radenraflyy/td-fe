@@ -14,6 +14,7 @@ import { constructUrl } from "@/app/utils/constructUrl"
 import useAxiosWithAuth from "../../use-axios-with-auth"
 import useAxiosWithoutAuth from "../../use-axios-without-auth"
 import type { UseQueryApiRequestProps } from "./types"
+import { SnackBarResultController } from "@/app/components/snackbar"
 
 function useQueryApiRequest<T = unknown>({
   key,
@@ -57,7 +58,12 @@ function useQueryApiRequest<T = unknown>({
   })
   useEffect(() => {
     if (queryFetch.isError && queryFetch.error) {
-      alert(queryFetch.error.message)
+      SnackBarResultController.open({
+        content: queryFetch.error.message,
+        variant: "error",
+        closeDuration: 3000,
+        snackbarOrigin: { horizontal: "center", vertical: "top" },
+      })
     }
   }, [queryFetch.isError, queryFetch.error, queryClient])
 

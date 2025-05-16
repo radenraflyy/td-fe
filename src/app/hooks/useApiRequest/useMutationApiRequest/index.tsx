@@ -7,6 +7,7 @@ import useAxiosWithAuth from "../../use-axios-with-auth"
 import useAxiosWithoutAuth from "../../use-axios-without-auth"
 import type { UseMuationApiRequestProps } from "./types"
 import { constructUrl } from "@/app/utils/constructUrl"
+import { SnackBarResultController } from "@/app/components/snackbar"
 
 function useMutationApiRequest<T = unknown>({
   key,
@@ -62,7 +63,12 @@ function useMutationApiRequest<T = unknown>({
   const mutateOption: typeof options = {
     retry: 1,
     onError: (error: AxiosErrorResponse) => {
-      alert(error.response?.data.error || 'Something went wrong')
+      SnackBarResultController.open({
+        content: error.response?.data.error || error.message,
+        variant: "error",
+        closeDuration: 3000,
+        snackbarOrigin: { horizontal: "center", vertical: "top" },
+      })
     },
     onSuccess: () => {
       invalidQueries(refetchQueries || [])

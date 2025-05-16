@@ -34,6 +34,9 @@ import FilterDialog from "../dialog-filter-todo"
 import SearchBar from "../searchbar"
 import TablePagination from "../table-pagination"
 import type { TodoData, TodoItem } from "./types"
+import { DialogConfirmationController } from "../dialog-confirmation"
+import { SnackBarResultController } from "../snackbar"
+import { AxiosError } from "axios"
 
 export default function UserTable() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
@@ -81,13 +84,30 @@ export default function UserTable() {
 
   const handleDeleteTodo = useCallback(
     async (id: string) => {
-      try {
-        setTodoId(id)
-        await deleteTodo({})
-      } catch (error) {
-        console.log("error", error)
-        console.error(error)
-      }
+      DialogConfirmationController.open({
+        title: "Delete Todo",
+        description: "Anda yakin akan menghapus todo ini?",
+        cancelButtonTitle: "Cancel",
+        confirmButtonTitle: "Delete",
+        onConfirm: async (closeDialog) => {
+          try {
+            setTodoId(id)
+            await deleteTodo({})
+            closeDialog()
+          } catch (error) {
+            if (error instanceof AxiosError) {
+              SnackBarResultController.open({
+                variant: "error",
+                content: error.response?.data.message || "Terjadi kesalahan",
+              })
+            }
+            DialogConfirmationController.close()
+          }
+        },
+        onCancel: () => {
+          DialogConfirmationController.close()
+        },
+      })
     },
     [deleteTodo]
   )

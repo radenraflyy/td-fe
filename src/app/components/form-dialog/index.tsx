@@ -27,6 +27,7 @@ import ButtonLoading from "../ButtonLoading"
 import CustomDatePicker from "../custom-date-picker"
 import MultipleSelectChip, { type LabelOption } from "../select-add"
 import { type Todo, TodoSchema } from "./config"
+import { SnackBarResultController } from "../snackbar"
 
 interface DialogProps {
   open: boolean
@@ -63,7 +64,12 @@ export default function FormDialog({ open, onClose }: DialogProps) {
       onClose()
     } catch (error) {
       if (error instanceof AxiosError) {
-        alert(error.response?.data.error || "Something went wrong")
+        SnackBarResultController.open({
+          content: error.response?.data.error,
+          variant: "error",
+          closeDuration: 3000,
+          snackbarOrigin: { horizontal: "center", vertical: "top" },
+        })
       }
     }
   })

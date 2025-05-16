@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom"
 
 import { axiosWithoutAuth } from "../../utils/axiosWithoutAuth"
 import { useAuthCtx } from "@/app/context/AuthContext"
+import { SnackBarResultController } from "@/app/components/snackbar"
 
 type User = {
   userId: string
@@ -65,7 +66,12 @@ export const useAuth = () => {
       return result.data.message
     } catch (error) {
       if (error instanceof AxiosError) {
-        alert(error.response?.data.error || "Something went wrong")
+        SnackBarResultController.open({
+          content: error.response?.data.error,
+          variant: "error",
+          closeDuration: 3000,
+          snackbarOrigin: { horizontal: "center", vertical: "top" },
+        })
       }
     }
   }, [navigate, queryClient, logout])
