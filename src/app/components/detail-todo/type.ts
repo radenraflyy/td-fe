@@ -12,7 +12,7 @@ export interface Label {
   Name: string
 }
 
-export interface Comment {
+export interface TodoComment {
   name: string
   comment: string
   created_at: string
@@ -26,7 +26,7 @@ export interface TodoDetail {
   is_done: boolean
   priority: string
   label: Label[]
-  comment: Comment[] | null
+  comment: TodoComment[] | null
 }
 
 export type GetDetailTodoResponse = TodoDetail

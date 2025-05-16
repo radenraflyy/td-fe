@@ -15,7 +15,11 @@ import {
 } from "@mui/material"
 import React from "react"
 import CommentForm from "../comment-form"
-import type { FormDialogProps, GetDetailTodoResponse } from "./type"
+import type {
+  FormDialogProps,
+  GetDetailTodoResponse,
+  TodoComment,
+} from "./type"
 
 export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
   const { data } = useQueryApiRequest<GetDetailTodoResponse>({
@@ -29,6 +33,14 @@ export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
       },
     },
   })
+
+  const commentsWithName: TodoComment[] = data?.comment
+    ? data.comment.map((c) => ({
+        name: data.name,
+        comment: c.comment,
+        created_at: c.created_at,
+      }))
+    : []
   return (
     <Dialog open={info.open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ p: 2 }}>
@@ -58,7 +70,7 @@ export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
           />
 
           <Stack direction="row" spacing={1} mb={3}>
-            <CommentForm comments={data?.comment} />
+            <CommentForm comments={commentsWithName} todoId={info.todoId} />
           </Stack>
         </Box>
 

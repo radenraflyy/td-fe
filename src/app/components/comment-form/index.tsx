@@ -1,3 +1,4 @@
+import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
 import { ExpandLess, ExpandMore } from "@mui/icons-material"
 import {
   Avatar,
@@ -20,44 +21,31 @@ interface Comment {
 
 interface CommentFormProps {
   comments: Comment[] | null | undefined
+  todoId: string
 }
 
-// const sampleComments: Comment[] = [
-//   {
-//     name: "Raden R.",
-//     created_at: "Today 17:00",
-//     comment: "sasa",
-//   },
-//   {
-//     name: "Raden R.",
-//     created_at: "Today 17:00",
-//     comment: "sasasa",
-//   },
-// ]
-
-export default function CollapsibleComments({ comments }: CommentFormProps) {
+export default function CollapsibleComments({
+  comments,
+  todoId,
+}: CommentFormProps) {
   const [open, setOpen] = useState(true)
-  // const [comments, setComments] = useState<Comment[]>(sampleComments)
   const [newText, setNewText] = useState("")
 
   const handleToggle = () => setOpen((o) => !o)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { mutateAsync } = useMutationApiRequest({
+    key: "create-comment",
+    config: {
+      params: {
+        todo_id: todoId,
+      },
+    },
+  })
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newText.trim()) return
-    // setComments((prev) => [
-    //   ...prev,
-    //   {
-    //     id: Date.now(),
-    //     author: "You",
-    //     avatarColor: "#1976d2",
-    //     timestamp: new Date().toLocaleTimeString([], {
-    //       hour: "2-digit",
-    //       minute: "2-digit",
-    //     }),
-    //     text: newText.trim(),
-    //   },
-    // ])
+    await mutateAsync({ comment: newText.trim() })
     setNewText("")
   }
 

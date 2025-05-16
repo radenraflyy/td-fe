@@ -21,7 +21,7 @@ export const todoMutations: MutationDataService<TodoMutationKeys> = {
   "create-comment": {
     url: "/todo/comment/:todo_id",
     method: "POST",
-    refetchQueries: [],
+    refetchQueries: ['detail-todo'],
   },
   "update-todo": {
     url: "/todo",
