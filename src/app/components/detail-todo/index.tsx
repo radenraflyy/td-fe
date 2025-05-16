@@ -28,7 +28,7 @@ import type {
 } from "./type"
 import useMutationApiRequest from "@/app/hooks/useApiRequest/useMutationApiRequest"
 
-export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
+export default function DetailTodo({ info, onClose }: FormDialogProps) {
   const { data } = useQueryApiRequest<GetDetailTodoResponse>({
     key: "detail-todo",
     options: {
@@ -62,7 +62,12 @@ export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
       }))
     : []
 
-  const { control, reset, handleSubmit } = useForm({
+  const {
+    control,
+    reset,
+    handleSubmit,
+    formState: { isDirty },
+  } = useForm({
     mode: "onChange",
     resolver: yupResolver(TodoSchema),
   })
@@ -195,8 +200,13 @@ export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
 
       <DialogActions sx={{ px: 3, py: 2 }}>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" color="primary" onClick={onSubmit}>
-          Add task
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={onSubmit}
+          disabled={!isDirty}
+        >
+          Update
         </Button>
       </DialogActions>
     </Dialog>

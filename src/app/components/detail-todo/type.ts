@@ -4,7 +4,6 @@ export interface FormDialogProps {
     todoId: string
   }
   onClose: () => void
-  onAdd: (data: unknown) => void
 }
 
 export interface LabelTodo {
