@@ -13,33 +13,31 @@ import {
 import React, { useState } from "react"
 
 interface Comment {
-  id: number
-  author: string
-  avatarColor: string
-  timestamp: string
-  text: string
+  name: string
+  comment: string
+  created_at: string
 }
 
-const sampleComments: Comment[] = [
-  {
-    id: 1,
-    author: "Raden R.",
-    avatarColor: "#000",
-    timestamp: "Today 17:00",
-    text: "sasa",
-  },
-  {
-    id: 2,
-    author: "Raden R.",
-    avatarColor: "#000",
-    timestamp: "Today 17:00",
-    text: "sasasa",
-  },
-]
+interface CommentFormProps {
+  comments: Comment[] | null | undefined
+}
 
-export default function CollapsibleComments() {
+// const sampleComments: Comment[] = [
+//   {
+//     name: "Raden R.",
+//     created_at: "Today 17:00",
+//     comment: "sasa",
+//   },
+//   {
+//     name: "Raden R.",
+//     created_at: "Today 17:00",
+//     comment: "sasasa",
+//   },
+// ]
+
+export default function CollapsibleComments({ comments }: CommentFormProps) {
   const [open, setOpen] = useState(true)
-  const [comments, setComments] = useState<Comment[]>(sampleComments)
+  // const [comments, setComments] = useState<Comment[]>(sampleComments)
   const [newText, setNewText] = useState("")
 
   const handleToggle = () => setOpen((o) => !o)
@@ -47,19 +45,19 @@ export default function CollapsibleComments() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newText.trim()) return
-    setComments((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        author: "You",
-        avatarColor: "#1976d2",
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        text: newText.trim(),
-      },
-    ])
+    // setComments((prev) => [
+    //   ...prev,
+    //   {
+    //     id: Date.now(),
+    //     author: "You",
+    //     avatarColor: "#1976d2",
+    //     timestamp: new Date().toLocaleTimeString([], {
+    //       hour: "2-digit",
+    //       minute: "2-digit",
+    //     }),
+    //     text: newText.trim(),
+    //   },
+    // ])
     setNewText("")
   }
 
@@ -72,29 +70,29 @@ export default function CollapsibleComments() {
         onClick={handleToggle}
         sx={{ cursor: "pointer", userSelect: "none", py: 1 }}
       >
-        <Typography variant="subtitle2">Comments {comments.length}</Typography>
+        <Typography variant="subtitle2">Comments {comments?.length}</Typography>
         <IconButton size="small">
           {open ? <ExpandLess /> : <ExpandMore />}
         </IconButton>
       </Stack>
       <Divider />
 
-      <Collapse in={open && comments.length > 0}>
+      <Collapse in={open && (comments?.length ?? 0) > 0}>
         <Box sx={{ mt: 1, mb: 2 }}>
-          {comments.map((c) => (
-            <Box key={c.id} sx={{ mb: 2 }}>
+          {comments?.map((c, idx) => (
+            <Box key={idx} sx={{ mb: 2 }}>
               <Stack direction="row" spacing={1} alignItems="flex-start">
                 <Avatar
-                  sx={{ bgcolor: c.avatarColor, width: 32, height: 32 }}
+                  sx={{ bgcolor: "text.primary", width: 32, height: 32 }}
                 />
                 <Box>
                   <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography variant="subtitle2">{c.author}</Typography>
+                    <Typography variant="subtitle2">{c.name}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {c.timestamp}
+                      {c.created_at}
                     </Typography>
                   </Stack>
-                  <Typography variant="body2">{c.text}</Typography>
+                  <Typography variant="body2">{c.comment}</Typography>
                 </Box>
               </Stack>
             </Box>

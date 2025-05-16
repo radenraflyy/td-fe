@@ -1,0 +1,32 @@
+export interface FormDialogProps {
+  info: {
+    open: boolean
+    todoId: string
+  }
+  onClose: () => void
+  onAdd: (data: unknown) => void
+}
+
+export interface Label {
+  Id: string
+  Name: string
+}
+
+export interface Comment {
+  name: string
+  comment: string
+  created_at: string
+}
+
+export interface TodoDetail {
+  name: string
+  title: string
+  description: string
+  due_date: string
+  is_done: boolean
+  priority: string
+  label: Label[]
+  comment: Comment[] | null
+}
+
+export type GetDetailTodoResponse = TodoDetail

@@ -1,36 +1,44 @@
-import { Add, RadioButtonUnchecked } from "@mui/icons-material"
+import useQueryApiRequest from "@/app/hooks/useApiRequest/useQueryApiRequest"
+import { formatDateTime } from "@/app/utils/formatDate"
 import {
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Divider,
-  IconButton,
   Stack,
   TextField,
   Typography,
 } from "@mui/material"
 import React from "react"
 import CommentForm from "../comment-form"
+import type { FormDialogProps, GetDetailTodoResponse } from "./type"
 
-interface FormDialogProps {
-  open: boolean
-  onClose: () => void
-  onAdd: (data: unknown) => void
-}
-
-export default function DetailTodo({ open, onClose, onAdd }: FormDialogProps) {
+export default function DetailTodo({ info, onClose, onAdd }: FormDialogProps) {
+  const { data } = useQueryApiRequest<GetDetailTodoResponse>({
+    key: "detail-todo",
+    options: {
+      enabled: info.open,
+    },
+    config: {
+      params: {
+        todo_id: info.todoId,
+      },
+    },
+  })
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={info.open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ p: 2 }}>
         <Stack direction="row" alignItems="center" spacing={1}>
-          <RadioButtonUnchecked color="disabled" />
+          <Checkbox checked={data?.is_done} disableRipple disabled />
           <TextField
             placeholder="Task title…"
             variant="standard"
             fullWidth
+            defaultValue={data?.title}
             InputProps={{ disableUnderline: true }}
             sx={{ fontSize: "1.5rem", fontWeight: 500 }}
           />
@@ -44,12 +52,13 @@ export default function DetailTodo({ open, onClose, onAdd }: FormDialogProps) {
             multiline
             minRows={1.5}
             fullWidth
+            defaultValue={data?.description}
             variant="standard"
             sx={{ mb: 2 }}
           />
 
           <Stack direction="row" spacing={1} mb={3}>
-            <CommentForm />
+            <CommentForm comments={data?.comment} />
           </Stack>
         </Box>
 
@@ -58,18 +67,25 @@ export default function DetailTodo({ open, onClose, onAdd }: FormDialogProps) {
           <ListItem
             label="Date"
             endElement={
-              <IconButton size="small">
-                <Add />
-              </IconButton>
+              <Typography variant="body2">
+                {data?.due_date ? formatDateTime(data.due_date) : "–"}
+              </Typography>
             }
           />
-          <ListItem label="Priority" endElement={<Typography>P4</Typography>} />
+          <ListItem
+            label="Priority"
+            endElement={<Typography>Priority {data?.priority}</Typography>}
+          />
           <ListItem
             label="Labels"
             endElement={
-              <IconButton size="small">
-                <Add />
-              </IconButton>
+              <Stack direction="column" spacing={1} alignItems={"flex-end"}>
+                {data?.label?.map((label, idx) => (
+                  <Typography key={label.Id} variant="body2">
+                    {idx + 1}. {label.Name} || '-'
+                  </Typography>
+                ))}
+              </Stack>
             }
           />
         </Box>

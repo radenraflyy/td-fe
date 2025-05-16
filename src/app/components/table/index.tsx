@@ -40,7 +40,10 @@ import { AxiosError } from "axios"
 
 export default function UserTable() {
   const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 5 })
-  const [openDetail, setOpenDetail] = useState(false)
+  const [openDetail, setOpenDetail] = useState({
+    open: false,
+    todoId: "",
+  })
   const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = useState("")
   const [selected, setSelected] = useState<string[]>([])
@@ -313,7 +316,9 @@ export default function UserTable() {
             {table.getRowModel().rows.map((row, index) => (
               <TableRow
                 key={index}
-                onClick={() => setOpenDetail(true)}
+                onClick={() =>
+                  setOpenDetail({ open: true, todoId: row.original.id })
+                }
                 sx={{
                   cursor: "pointer",
                   ":hover": { backgroundColor: "#f5f5f5" },
@@ -375,8 +380,8 @@ export default function UserTable() {
         }
       />
       <DetailTodo
-        open={openDetail}
-        onClose={() => setOpenDetail(false)}
+        info={openDetail}
+        onClose={() => setOpenDetail({ open: false, todoId: "" })}
         onAdd={() => {}}
       />
     </Box>

@@ -126,7 +126,10 @@ export default function Sidebar({ variant, open, onClose }: SidebarProps) {
                 description: "Anda yakin akan logout?",
                 cancelButtonTitle: "Batal",
                 confirmButtonTitle: "Logout",
-                onConfirm: () => signOut(),
+                onConfirm: () => {
+                  signOut()
+                  DialogConfirmationController.close()
+                },
               })
             }
             startIcon={<Logout color="action" />}
